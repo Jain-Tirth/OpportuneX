@@ -1,14 +1,14 @@
 import { unstopScrapper } from './unstopScrapper.js';
 import { eventbriteScrapper } from './eventBriteScrapper.js';
 import { devfolioScraper } from './devfolioScraper.js';
-import{devpostScrapper} from './devPostScrapper.js';
+import {devPostScrapper} from './devPostScrapper.js'
 /* Scrape events and hackathon from multiple platform*/
 export class mainScrapping {
     constructor() {
         this.unstopScrapper = new unstopScrapper();
         this.eventbriteScrapper = new eventbriteScrapper();
         this.devfolioScraper = new devfolioScraper();
-        this.devpostScrapper = new devpostScrapper();
+        this.devpostScrapper = new devPostScrapper();
     }
 
     /* Main scraping method - scrapes from all platforms */

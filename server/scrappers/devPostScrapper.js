@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 
-class devPostScrapper {
+export class devPostScrapper {
     constructor() {
         this.baseURL = 'https://devpost.com';
         this.hackathonsUrl = 'https://devpost.com/hackathons';
