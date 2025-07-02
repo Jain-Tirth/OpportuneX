@@ -6,6 +6,20 @@ export class devPostScrapper {
         this.hackathonsUrl = 'https://devpost.com/hackathons';
         this.name = 'Devpost';
     }
+
+    /* Helper method for Puppeteer timeout compatibility */
+    async waitForTimeout(page, ms) {
+        try {
+            await page.waitForTimeout(ms);
+        } catch (error) {
+            try {
+                await page.waitFor(ms);
+            } catch (fallbackError) {
+                // If both fail, use a simple Promise timeout
+                await new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+    }
     async scrapeDevpost(limit = 5) {
         const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
         const page = await browser.newPage();
@@ -13,8 +27,8 @@ export class devPostScrapper {
         const hackathons = [];
 
         try {
-            await page.goto(url, { waitUntil: 'networkidle2' });
-            await page.waitForSelector('.hackathon-tile');
+            await page.waitForSelector('.hackathon-tile');            
+            await page.goto(url, { waitUntil: 'networkidle2' });            
 
             const links = await page.evaluate(() => {
                 const anchorEls = Array.from(document.querySelectorAll('a.hackathon-tile'));
@@ -24,7 +38,7 @@ export class devPostScrapper {
             for (let i = 0; i < Math.min(limit, links.length); i++) {
                 const hackathonUrl = links[i];
                 await page.goto(hackathonUrl, { waitUntil: 'networkidle2' });
-                await page.waitForTimeout(2000);
+                await this.waitForTimeout(page,2000);
 
                 const data = await page.evaluate(() => {
                     const getText = (selector) => document.querySelector(selector)?.innerText.trim() || 'N/A';
