@@ -1,14 +1,14 @@
 import { unstopScrapper } from './unstopScrapper.js';
 import { eventbriteScrapper } from './eventBriteScrapper.js';
 import { devfolioScraper } from './devfolioScraper.js';
-import {devPostScrapper} from './devPostScrapper.js'
+import {devPostScrapper} from './devPostScrapper.js';
 /* Scrape events and hackathon from multiple platform*/
 export class mainScrapping {
     constructor() {
         this.unstopScrapper = new unstopScrapper();
         this.eventbriteScrapper = new eventbriteScrapper();
         this.devfolioScraper = new devfolioScraper();
-        this.devpostScrapper = new devPostScrapper();
+        this.devPostScrapper = new devPostScrapper();
     }
 
     /* Main scraping method - scrapes from all platforms */
@@ -37,7 +37,7 @@ export class mainScrapping {
             console.log(`- Devfolio: ${devfolioEvents.length}`);
             console.log(`- Unstop: ${unstopEvents.length}`);
             console.log(`- Eventbrite: ${eventbriteEvents.length}`);
-            console.log(`- Eventbrite: ${devPostEvent.length}`);
+            console.log(`- Devpost: ${devPostEvent.length}`);
 
             // Process and normalize dates
             const processedEvents = this.processEventDates(allEvents);
