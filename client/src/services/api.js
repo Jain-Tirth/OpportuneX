@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://opportunex-backend-r1zl.onrender.com';
 
 // Fetch all events from the server
 export const getEvents = async () => {

@@ -1,0 +1,19 @@
+# Optional: render.yaml for Infrastructure as Code
+# You can skip this and just use Render's web dashboard instead
+
+services:
+  - type: web
+    name: opportunex-backend
+    env: node
+    plan: free  # or starter/standard
+    buildCommand: npm install
+    startCommand: node server.js
+    rootDir: server
+    healthCheckPath: /test
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false  # Set manually in dashboard for security
+      - key: SUPABASE_KEY
+        sync: false  # Set manually in dashboard for security

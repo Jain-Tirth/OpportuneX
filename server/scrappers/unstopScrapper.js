@@ -1,336 +1,216 @@
-import puppeteer from "puppeteer";
+import axios from "axios";
+
 export class unstopScrapper {
     constructor() {
-        this.platform = {
-            unstop: {
-                baseUrl: 'https://unstop.com',
-                hackathonsUrl: 'https://unstop.com/hackathons',
-                name: 'Unstop'
-            }
-        }
+        this.baseUrl = "https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons";
     }
 
-    /* Helper method for Puppeteer timeout compatibility */
-    async waitForTimeout(page, ms) {
+    async scrapeUnstop() {
         try {
-            await page.waitForTimeout(ms);
-        } catch (error) {
-            try {
-                await page.waitFor(ms);
-            } catch (fallbackError) {
-                // If both fail, use a simple Promise timeout
-                await new Promise(resolve => setTimeout(resolve, ms));
-            }
-        }
-    }
-
-    /* Scrape Unstop using Puppeteer with XHR interception */
-    async scrapeUnstopWithPuppeteer() {
-        let browser;
-        try {
-            console.log('Launching browser for Unstop...');
-            browser = await puppeteer.launch({
-                headless: false,
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
-            });
-
-            const page = await browser.newPage();
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-
-            // Intercept network requests to capture API calls
-            const apiResponses = [];
-            await page.setRequestInterception(true);
-
-            page.on('request', (request) => {
-                request.continue();
-            });
-
-            page.on('response', async (response) => {
-                const url = response.url();
-
-                // Capture API responses that might contain competition/hackathon data
-                if ((url.includes('/api/') ||
-                    url.includes('/v1/') ||
-                    url.includes('/competitions') ||
-                    url.includes('/hackathon') ||
-                    url.includes('.json') ||
-                    (url.includes('unstop') && response.headers()['content-type']?.includes('application/json'))) &&
-                    response.status() === 200) {
-
-                    try {
-                        const responseData = await response.json();
-                        apiResponses.push({ url, data: responseData });
-                        console.log(`Captured Unstop API response from: ${url}`);
-                    } catch (e) {
-                        // Not JSON, ignore
-                    }
-                }
-            });
-
-            // Try multiple Unstop URLs
-            const unstopUrls = [
-                'https://unstop.com/hackathons',
-                'https://unstop.com/competitions',
-                'https://unstop.com/hackathons?opportunity=Hackathons'
-            ];
-
             let allEvents = [];
+            let currentPage = 1;
+            const maxPages = 3; 
+            
+            while (currentPage <= maxPages) {
+                const pageUrl = `${this.baseUrl}&page=${currentPage}`;
+                
+                const response = await axios.get(pageUrl);
 
-            for (const url of unstopUrls) {
-                try {
-                    console.log(`Navigating to Unstop URL: ${url}`);
-                    await page.goto(url, {
-                        waitUntil: 'networkidle2',
-                        timeout: 60000
-                    });
-
-                    // Wait for XHR requests to complete
-                    await this.waitForTimeout(page, 8000);
-
-                    // Scroll to trigger lazy loading
-                    await page.evaluate(() => {
-                        window.scrollTo(0, document.body.scrollHeight);
-                    });
-                    await this.waitForTimeout(page, 3000);
-
-                    // Try to extract from API responses first
-                    console.log(`Found ${apiResponses.length} API responses for Unstop`);
-                    for (const apiResponse of apiResponses) {
-                        try {
-                            const events = this.extractUnstopEventsFromApiResponse(apiResponse.data);
-                            allEvents.push(...events);
-                        } catch (error) {
-                            console.log(`Error parsing Unstop API response: ${error.message}`);
-                        }
-                    }
-
-                    // If no API data found, try DOM scraping
-                    if (allEvents.length === 0) {
-                        console.log('No Unstop API data found, trying DOM extraction...');
-
-                        const domEvents = await this.extractUnstopEventsFromDOM(page);
-                        allEvents.push(...domEvents);
-                    }
-
-                    if (allEvents.length > 0) {
-                        break; // Found events, no need to try other URLs
-                    }
-
-                } catch (urlError) {
-                    console.log(`Error with Unstop URL ${url}: ${urlError.message}`);
-                    continue;
+                if (!response.data || !response.data.data) {
+                    console.log(`❌ No data found on page ${currentPage}`);
+                    break;
                 }
+
+                const paginatedData = response.data.data;
+                const rawData = paginatedData.data;
+                
+                console.log(`📊 Found ${Object.keys(rawData).length} opportunities on page ${currentPage}`);
+
+                // Convert object to array if it's not already an array
+                let eventsArray = [];
+                if (Array.isArray(rawData)) {
+                    eventsArray = rawData;
+                } else if (typeof rawData === 'object' && rawData !== null) {
+                    eventsArray = Object.values(rawData);
+                } else {
+                    // Data is neither array nor object.
+                    break;
+                }
+
+                // If no data on this page, we've reached the end
+                if (eventsArray.length === 0) {
+                    console.log(`✅ No more data on page ${currentPage}, stopping`);
+                    break;
+                }
+
+                // Process and filter the data
+                const processedEvents = this.processUnstopData(eventsArray);
+                allEvents = allEvents.concat(processedEvents);
+                
+                // Check if we have more pages
+                if (!paginatedData.next_page_url) {
+                    console.log(`✅ Reached last page (${currentPage}), stopping`);
+                    break;
+                }
+                
+                currentPage++;
             }
 
-            console.log(`Found ${allEvents.length} events from Unstop`);
-            return allEvents.slice(0, 3); // Limit to 3 events
-
+            console.log(`✅ Total processed ${allEvents.length} hackathon/tech events from Unstop`);
+            return allEvents;
+            
         } catch (error) {
-            console.error('Error scraping Unstop with Puppeteer:', error.message);
+            console.error('❌ Error fetching from Unstop API:', error.message);
             return [];
-        } finally {
-            if (browser) {
-                await browser.close();
-            }
         }
     }
 
-    /* Extract events from Unstop API response data */
-    extractUnstopEventsFromApiResponse(data) {
+    /* Process Unstop API data and filter for hackathons/tech events */
+    processUnstopData(rawData) {
         const events = [];
 
-        try {
-            // Handle different API response structures for Unstop
-            let competitionArray = [];
+        for(let i = 0; i < rawData.length; i++){   
+            try {
+                // Extract basic info
+                const title = rawData[i].title;
+                const titleLower = title.toLowerCase(); 
 
-            if (Array.isArray(data)) {
-                competitionArray = data;
-            } else if (data.data && Array.isArray(data.data)) {
-                competitionArray = data.data;
-            } else if (data.competitions && Array.isArray(data.competitions)) {
-                competitionArray = data.competitions;
-            } else if (data.results && Array.isArray(data.results)) {
-                competitionArray = data.results;
-            } else if (data.opportunities && Array.isArray(data.opportunities)) {
-                competitionArray = data.opportunities;
-            }
+                const endDate = rawData[i].end_date;
+                if (endDate && this.isDatePast(endDate)) {
+                    console.log(`⏰ Skipping expired event: ${title}`);
+                    continue;
+                }
 
-            competitionArray.forEach(item => {
-                // Filter for hackathon-related content
-                const title = item.title || item.name || item.competition_name || '';
-                const titleLower = title.toLowerCase();
-                const isHackathonRelated = ['hackathon', 'hack', 'coding', 'programming', 'tech', 'innovation', 'startup', 'challenge'].some(keyword =>
-                    titleLower.includes(keyword)
-                );
-
-                if (!isHackathonRelated || title.length < 5) return;
-
+                // Create event object
                 const event = {
                     title: title,
-                    description: item.description || item.about || item.summary || item.details || '',
-                    type: 'hackathon',
-                    startDate: item.start_date || item.startDate || item.begins_on || item.registration_start_date || null,
-                    endDate: item.end_date || item.endDate || item.ends_on || item.registration_end_date || null,
-                    deadline: item.deadline || item.registration_deadline || item.apply_by || item.last_date || null,
-                    tags: ['hackathon', 'competition', 'unstop'],
-                    hostedBy: 'Unstop',
+                    description: this.extractDescription(rawData[i]),
+                    type: 'hackathons',
+                    startDate: this.formatDate(rawData[i].start_date),
+                    endDate: this.formatDate(rawData[i].end_date),
+                    deadline: this.extractDeadline(rawData[i].regnRequirements.remainigDaysArray.duration),
+                    tags: this.extractTags(rawData[i], titleLower),
+                    hostedBy: this.extractHostedBy(rawData[i]),
                     verified: true,
-                    redirectURL: ''
+                    redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
                 };
 
-                // Extract URL
-                if (item.slug) {
-                    event.redirectURL = `https://unstop.com/hackathons/${item.slug}`;
-                } else if (item.url) {
-                    event.redirectURL = item.url;
-                } else if (item.id) {
-                    event.redirectURL = `https://unstop.com/competition/${item.id}`;
-                }
+                events.push(event);
+                console.log(`✅ Added event: ${event.title}`);
 
-                // Extract additional tags
-                if (item.tags && Array.isArray(item.tags)) {
-                    event.tags = [...event.tags, ...item.tags.slice(0, 3)];
-                } else if (item.category) {
-                    event.tags.push(item.category.toLowerCase());
-                }
-
-                if (event.title && event.title.length > 5) {
-                    events.push(event);
-                }
-            });
-
-        } catch (error) {
-            console.log(`Error extracting from Unstop API response: ${error.message}`);
+            } catch (error) {
+                console.log(`❌ Error processing event: ${error.message}`);
+            }
         }
 
         return events;
     }
 
-    /* Extract events from Unstop DOM */
-    async extractUnstopEventsFromDOM(page) {
-        return await page.evaluate(() => {
-            const events = [];
+    /* Extract description from item */
+    extractDescription(item) {
+        let description = '';
 
-            // Try multiple selectors for Unstop cards
-            const cardSelectors = [
-                '.competition-card',
-                '.hackathon-card',
-                '.event-card',
-                '[class*="card"]',
-                '.opportunity-card',
-                '.listing-card',
-                '[class*="competition"]',
-                '[class*="opportunity"]',
-                '.search-result',
-                '.result-card'
-            ];
+        if (item.details) {
+            // Remove HTML tags and clean up
+            description = item.details.replace(/<[^>]*>/g, ' ')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
 
-            let foundCards = false;
+        // If no details, use featured_title or other fields
+        if (!description || description.length < 20) {
+            description = item.featured_title ||
+                item.overall_prizes ||
+                item.seo_details?.[0]?.description ||
+                `${item.title} - Competition/Hackathon on Unstop`;
+        }
 
-            for (const selector of cardSelectors) {
-                const cards = document.querySelectorAll(selector);
-                if (cards.length > 0) {
-                    console.log(`Found ${cards.length} Unstop cards with selector: ${selector}`);
-                    foundCards = true;
+        return description.substring(0, 500); // Limit description length
+    }
 
-                    cards.forEach((element, i) => {
-                        if (i >= 5) return; // Limit to first 5 cards per selector
+    /* Extract deadline from registration requirements */
+    extractDeadline(item) {
+        if (item.regnRequirements?.end_regn_dt) {
+            return this.formatDate(item.regnRequirements.end_regn_dt);
+        }
+        return null;
+    }
 
-                        const event = {
-                            title: '',
-                            description: '',
-                            type: 'hackathon',
-                            startDate: null,
-                            endDate: null,
-                            deadline: null,
-                            tags: ['hackathon', 'competition', 'unstop', 'online'],
-                            hostedBy: 'Unstop',
-                            verified: true,
-                            redirectURL: window.location.href
-                        };
+    /* Extract tags from item */
+    extractTags(item, titleLower) {
+        const tags = ['unstop'];
 
-                        // Extract title with multiple selectors
-                        const titleSelectors = ['h1', 'h2', 'h3', '.title', '[class*="title"]', '.name', '[class*="name"]'];
-                        for (const titleSel of titleSelectors) {
-                            const titleEl = element.querySelector(titleSel);
-                            if (titleEl && titleEl.textContent.trim() && titleEl.textContent.trim().length > 5) {
-                                event.title = titleEl.textContent.trim();
-                                break;
-                            }
-                        }
+        // Add type-based tags
+        if (item.type === 'hackathons') {
+            tags.push('hackathon');
+        } else if (item.type === 'competitions') {
+            tags.push('competition');
+        }
 
-                        // Skip if no meaningful title
-                        if (!event.title || event.title.length < 5) return;
+        // Add subtype tags
+        if (item.subtype) {
+            tags.push(item.subtype.replace(/_/g, ' '));
+        }
 
-                        // Filter for hackathon-related content
-                        const titleLower = event.title.toLowerCase();
-                        const isHackathonRelated = ['hackathon', 'hack', 'coding', 'programming', 'tech', 'innovation', 'startup', 'challenge'].some(keyword =>
-                            titleLower.includes(keyword)
-                        );
+        // Add region tag
+        if (item.region) {
+            tags.push(item.region);
+        }
 
-                        if (!isHackathonRelated) return;
-
-                        // Extract description
-                        const descSelectors = ['p', '.description', '[class*="description"]', '.summary', '[class*="summary"]'];
-                        for (const descSel of descSelectors) {
-                            const descEl = element.querySelector(descSel);
-                            if (descEl && descEl.textContent.trim() && descEl.textContent.trim().length > 20) {
-                                event.description = descEl.textContent.trim();
-                                break;
-                            }
-                        }
-
-                        // Extract URL
-                        const linkSelectors = ['a', '[href]'];
-                        for (const linkSel of linkSelectors) {
-                            const linkEl = element.querySelector(linkSel);
-                            const href = linkEl?.href || element.getAttribute('href');
-                            if (href) {
-                                event.redirectURL = href.startsWith('http') ? href : `https://unstop.com${href}`;
-                                break;
-                            }
-                        }
-
-                        // Extract tags from chip_text class
-                        const tagElements = element.querySelectorAll('.chip_text');
-                        if (tagElements.length > 0) {
-                            tagElements.forEach(tagEl => {
-                                const tagText = tagEl.textContent.trim();
-                                if (tagText && tagText.length < 30 && !event.tags.includes(tagText.toLowerCase())) {
-                                    event.tags.push(tagText.toLowerCase());
-                                }
-                            });
-                        }
-
-                        // Extract dates from text
-                        const cardText = element.textContent;
-                        const dateMatches = cardText.match(/(\w+ \d{1,2}, \d{4}|\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}|\d{1,2} \w+ \d{4})/g);
-                        if (dateMatches && dateMatches.length > 0) {
-                            const uniqueDates = [...new Set(dateMatches)];
-                            event.deadline = uniqueDates[0];
-                            if (uniqueDates.length > 1) {
-                                event.startDate = uniqueDates[0];
-                                event.endDate = uniqueDates[uniqueDates.length - 1];
-                            }
-                        }
-
-                        if (event.title && event.title.length > 5) {
-                            events.push(event);
-                        }
-                    });
-
-                    if (events.length > 0) {
-                        break; // Found events, no need to try other selectors
-                    }
-                }
+        // Add tech-related tags based on title
+        const techKeywords = ['ai', 'ml', 'data', 'coding', 'programming', 'web', 'app', 'tech', 'innovation'];
+        techKeywords.forEach(keyword => {
+            if (titleLower.includes(keyword)) {
+                tags.push(keyword);
             }
-
-            if (!foundCards) {
-                console.log('No cards found with any selector on Unstop');
-            }
-
-            return events;
         });
+
+        return [...new Set(tags)]; // Remove duplicates
+    }
+
+    /* Extract hosted by organization */
+    extractHostedBy(item) {
+        if (item.organisation?.name) {
+            return item.organisation.name;
+        }
+        return 'Unstop';
+    }
+
+    /* Build redirect URL */
+    // buildRedirectURL(item) {
+    //     if (item.public_url) {
+    //         return `https://unstop.com/${item.public_url}`;
+    //     }
+    //     return 'https://unstop.com/';
+    // }
+
+    /* Format date string */
+    formatDate(dateString) {
+        if (!dateString) return null;
+
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return null;
+
+            return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+        } catch (error) {
+            console.log(`Error formatting date "${dateString}": ${error.message}`);
+            return null;
+        }
+    }
+
+    /* Check if date is in the past */
+    isDatePast(dateString) {
+        if (!dateString) return false;
+
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            return date < now;
+        } catch (error) {
+            return false;
+        }
     }
 }
 

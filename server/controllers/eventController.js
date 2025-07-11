@@ -23,7 +23,6 @@ export const scrapeEvents = async (req, res) => {
         const savedEvents = [];
         for (const event of events) {
             try {
-                // Add logic here for searching for duplicates before inserting the event
                 const { data: existingEvent, error: existingError } = await supabase
                     .from('Event')
                     .select('id')
