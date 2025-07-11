@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { startScheduler } from './scheduler.js';
+import eventRoutes from './routes/eventRoute.js';
 
 dotenv.config();
 
@@ -14,7 +15,6 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Server is working!' });
 });
 
-import eventRoutes from './routes/eventRoute.js';
 app.use('/api/events', eventRoutes);
 
 // Scheduler routes

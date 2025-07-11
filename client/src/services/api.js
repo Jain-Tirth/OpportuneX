@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://opportunex-backend-r1zl.onrender.com';
+const API_BASE_URL = 'https://opportunex-backend-r1zl.onrender.com/api';
 
 // Fetch all events from the server
 export const getEvents = async () => {
@@ -31,7 +31,7 @@ export const addEvent = async (eventData) => {
 // Scrape events from mainScrapping.js
 export const scrapeEvents = async () => {
   try {
-    console.log('Triggering Devfolio scraping...');
+    console.log('Triggering event scraping...');
     const response = await axios.get(`${API_BASE_URL}/events/scrape`);
     console.log('Scrape response:', response.data);
     return response.data;
