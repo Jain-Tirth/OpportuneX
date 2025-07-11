@@ -14,7 +14,7 @@ A robust, full-stack application that automatically aggregates hackathons and te
 - **Automated Scheduler**: Node-cron based system with start/stop/manual trigger controls
 - **REST API**: Full CRUD operations with filtering capabilities
 - **Database Integration**: Supabase PostgreSQL with real-time capabilities
-- **Error Handling**: Robust error management and logging
+- **Error Handling**: Robust error management
 
 ### Frontend
 - **Modern UI/UX**: Premium design with responsive layout
@@ -243,79 +243,6 @@ Events must follow this structure:
 }
 ```
 
-## 🔍 Monitoring & Debugging
-
-### Logs
-- Server logs include scraping progress and errors
-- Each scraper provides detailed console output
-- Database operations are logged with success/failure status
-
-### Testing
-```bash
-# Test individual scrapers
-cd server
-node test-unstop-only.js
-node test-devfolio-only.js
-
-# Test full scraping process
-node test-scraper.js
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-### Development Guidelines
-- Follow existing code structure and naming conventions
-- Add error handling for all external API calls
-- Test scrapers with multiple platforms before submitting
-- Update documentation for new features
-
-## 📊 Platform Coverage
-
-| Platform | Events | Status | Features |
-|----------|--------|--------|----------|
-| **Unstop** | ~30+ per scrape | ✅ Active | Pagination, Tag extraction |
-| **Devfolio** | ~20+ per scrape | ✅ Active | XHR interception, Prize info |
-| **Eventbrite** | ~15+ per scrape | ✅ Active | Location filtering, Categories |
-| **Devpost** | ~10+ per scrape | ✅ Active | Challenge extraction, Tech focus |
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Supabase Connection Error**
-   ```
-   Error: supabaseUrl is required
-   ```
-   - Check `.env` file has correct SUPABASE_URL and SUPABASE_KEY
-   - Ensure environment variables are loaded properly
-
-2. **Scraper Errors**
-   ```
-   Cannot read properties of undefined
-   ```
-   - API response structure may have changed
-   - Check scraper logs for specific platform errors
-   - Update scraper with defensive programming
-
-3. **CORS Issues**
-   - Backend server must be running on port 5000
-   - Frontend should proxy API calls correctly
-
-## 📈 Future Enhancements
-
-- [ ] Real-time notifications for new events
-- [ ] User accounts and event bookmarking
-- [ ] Advanced filtering and search
-- [ ] Calendar integration
-- [ ] Mobile app development
-- [ ] AI-powered event recommendations
-- [ ] Analytics dashboard for event trends
 
 ## 📄 License
 
@@ -327,13 +254,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - GitHub: [@Jain-Tirth](https://github.com/Jain-Tirth)
 - Project: [OpportuneX](https://github.com/Jain-Tirth/OpportuneX)
 
-## 🙏 Acknowledgments
-
-- Built with React, Node.js, and Supabase
-- Web scraping powered by Axios and Cheerio
-- Scheduled tasks using node-cron
-- Deployed on Render and Vercel
-
----
 
 **⭐ Star this repository if you find it helpful!**
