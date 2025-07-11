@@ -72,7 +72,12 @@ export class unstopScrapper {
         for(let i = 0; i < rawData.length; i++){   
             try {
                 // Extract basic info
-                const title = rawData[i].title;
+                const title = rawData[i]?.title;
+                
+                if (!title || title.length < 5) {
+                    continue; // Skip events with invalid titles
+                }
+                
                 const titleLower = title.toLowerCase(); 
 
                 const endDate = rawData[i].end_date;
@@ -88,7 +93,7 @@ export class unstopScrapper {
                     type: 'hackathons',
                     startDate: this.formatDate(rawData[i].start_date),
                     endDate: this.formatDate(rawData[i].end_date),
-                    deadline: this.extractDeadline(rawData[i].regnRequirements.remainigDaysArray.duration),
+                    deadline: this.extractDeadline(rawData[i]),
                     tags: this.extractTags(rawData[i], titleLower),
                     hostedBy: this.extractHostedBy(rawData[i]),
                     verified: true,
@@ -108,6 +113,8 @@ export class unstopScrapper {
 
     /* Extract description from item */
     extractDescription(item) {
+        if (!item) return 'Event description not available';
+        
         let description = '';
 
         if (item.details) {
@@ -123,7 +130,7 @@ export class unstopScrapper {
             description = item.featured_title ||
                 item.overall_prizes ||
                 item.seo_details?.[0]?.description ||
-                `${item.title} - Competition/Hackathon on Unstop`;
+                `${item.title || 'Hackathon'} - Competition/Hackathon on Unstop`;
         }
 
         return description.substring(0, 500); // Limit description length
@@ -132,13 +139,15 @@ export class unstopScrapper {
     /* Extract deadline from registration requirements */
     extractDeadline(item) {
         if (item.regnRequirements?.end_regn_dt) {
-            return this.formatDate(item.regnRequirements.end_regn_dt);
+            return this.formatDate(item.regnRequirements.remainingDaysArray);
         }
         return null;
     }
 
     /* Extract tags from item */
     extractTags(item, titleLower) {
+        if (!item || !titleLower) return ['unstop'];
+        
         const tags = ['unstop'];
 
         // Add type-based tags
@@ -171,6 +180,8 @@ export class unstopScrapper {
 
     /* Extract hosted by organization */
     extractHostedBy(item) {
+        if (!item) return 'Unstop';
+        
         if (item.organisation?.name) {
             return item.organisation.name;
         }
