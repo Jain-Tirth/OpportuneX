@@ -1,7 +1,6 @@
 import supabase from '../supabase/client.js';
 import mainScrapping from '../scrappers/mainScrapping.js';
 
-// Scrape and save events from multiple platforms
 export const scrapeEvents = async (req, res) => {
     try {
         console.log('Starting multi-platform scraping process...');

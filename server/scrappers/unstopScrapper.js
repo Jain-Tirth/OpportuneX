@@ -26,7 +26,6 @@ export class unstopScrapper {
                 
                 console.log(`📊 Found ${Object.keys(rawData).length} opportunities on page ${currentPage}`);
 
-                // Convert object to array if it's not already an array
                 let eventsArray = [];
                 if (Array.isArray(rawData)) {
                     eventsArray = rawData;
@@ -71,9 +70,7 @@ export class unstopScrapper {
 
         for(let i = 0; i < rawData.length; i++){   
             try {
-                // Extract basic info
                 const title = rawData[i]?.title;
-                
                 if (!title || title.length < 5) {
                     continue; // Skip events with invalid titles
                 }
@@ -88,16 +85,16 @@ export class unstopScrapper {
 
                 // Create event object
                 const event = {
-                    title: title,
-                    description: this.extractDescription(rawData[i]),
-                    type: 'hackathons',
-                    startDate: this.formatDate(rawData[i].start_date),
-                    endDate: this.formatDate(rawData[i].end_date),
-                    deadline: this.extractDeadline(rawData[i]),
-                    tags: this.extractTags(rawData[i], titleLower),
-                    hostedBy: this.extractHostedBy(rawData[i]),
-                    verified: true,
-                    redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
+                        title: title,
+                        description: this.extractDescription(rawData[i]),
+                        type: 'hackathons',
+                        startDate: this.formatDate(rawData[i].start_date),
+                        endDate: this.formatDate(rawData[i].end_date),
+                        deadline: this.extractDeadline(rawData[i]),
+                        tags: this.extractTags(rawData[i], titleLower),
+                        hostedBy: this.extractHostedBy(rawData[i]),
+                        verified: true,
+                        redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
                 };
 
                 events.push(event);
@@ -111,7 +108,6 @@ export class unstopScrapper {
         return events;
     }
 
-    /* Extract description from item */
     extractDescription(item) {
         if (!item) return 'Event description not available';
         
@@ -133,10 +129,9 @@ export class unstopScrapper {
                 `${item.title || 'Hackathon'} - Competition/Hackathon on Unstop`;
         }
 
-        return description.substring(0, 500); // Limit description length
+        return description.substring(0, 500); 
     }
 
-    /* Extract deadline from registration requirements */
     extractDeadline(item) {
         if (item.regnRequirements?.end_regn_dt) {
             return this.formatDate(item.regnRequirements.remainingDaysArray);
@@ -144,20 +139,16 @@ export class unstopScrapper {
         return null;
     }
 
-    /* Extract tags from item */
     extractTags(item, titleLower) {
         if (!item || !titleLower) return ['unstop'];
         
         const tags = ['unstop'];
 
-        // Add type-based tags
         if (item.type === 'hackathons') {
             tags.push('hackathon');
         } else if (item.type === 'competitions') {
             tags.push('competition');
         }
-
-        // Add subtype tags
         if (item.subtype) {
             tags.push(item.subtype.replace(/_/g, ' '));
         }
@@ -166,19 +157,9 @@ export class unstopScrapper {
         if (item.region) {
             tags.push(item.region);
         }
-
-        // Add tech-related tags based on title
-        const techKeywords = ['ai', 'ml', 'data', 'coding', 'programming', 'web', 'app', 'tech', 'innovation'];
-        techKeywords.forEach(keyword => {
-            if (titleLower.includes(keyword)) {
-                tags.push(keyword);
-            }
-        });
-
-        return [...new Set(tags)]; // Remove duplicates
+        return [...new Set(tags)]; 
     }
 
-    /* Extract hosted by organization */
     extractHostedBy(item) {
         if (!item) return 'Unstop';
         
@@ -188,15 +169,6 @@ export class unstopScrapper {
         return 'Unstop';
     }
 
-    /* Build redirect URL */
-    // buildRedirectURL(item) {
-    //     if (item.public_url) {
-    //         return `https://unstop.com/${item.public_url}`;
-    //     }
-    //     return 'https://unstop.com/';
-    // }
-
-    /* Format date string */
     formatDate(dateString) {
         if (!dateString) return null;
 
@@ -211,7 +183,6 @@ export class unstopScrapper {
         }
     }
 
-    /* Check if date is in the past */
     isDatePast(dateString) {
         if (!dateString) return false;
 
