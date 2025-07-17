@@ -1,12 +1,12 @@
-import { unstopScrapper } from './unstopScrapper.js';
+import  unstopScrapper  from './unstopScrapper.js';
+import devfolioScraper from './devfolioScraper.js';
 import { eventbriteScrapper } from './eventBriteScrapper.js';
-import { devfolioScraper } from './devfolioScraper.js';
 
 export class mainScrapping {
     constructor() {
-        this.unstopScrapper = new unstopScrapper();
+        this.unstopScrapper = unstopScrapper ;
         this.eventbriteScrapper = new eventbriteScrapper();
-        this.devfolioScraper = new devfolioScraper();
+        this.devfolioScraper = devfolioScraper; 
         // this.devPostScrapper = new devPostScrapper();
     }
 
@@ -19,7 +19,7 @@ export class mainScrapping {
             // Scrape Devfolio
             const devfolioEvents = await this.devfolioScraper.scrapeDevfolio();
             allEvents.push(...devfolioEvents);
-
+            
             // Scrape Unstop
             const unstopEvents = await this.unstopScrapper.scrapeUnstop();
             allEvents.push(...unstopEvents);

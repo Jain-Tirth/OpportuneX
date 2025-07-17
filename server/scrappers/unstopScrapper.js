@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import supabase from '../supabase/client.js';
 export class unstopScrapper {
     constructor() {
         this.baseUrl = "https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons";
@@ -9,11 +9,11 @@ export class unstopScrapper {
         try {
             let allEvents = [];
             let currentPage = 1;
-            const maxPages = 3; 
-            
+            const maxPages = 3;
+
             while (currentPage <= maxPages) {
                 const pageUrl = `${this.baseUrl}&page=${currentPage}`;
-                
+
                 const response = await axios.get(pageUrl);
 
                 if (!response.data || !response.data.data) {
@@ -23,8 +23,6 @@ export class unstopScrapper {
 
                 const paginatedData = response.data.data;
                 const rawData = paginatedData.data;
-                
-                console.log(`📊 Found ${Object.keys(rawData).length} opportunities on page ${currentPage}`);
 
                 let eventsArray = [];
                 if (Array.isArray(rawData)) {
@@ -32,7 +30,6 @@ export class unstopScrapper {
                 } else if (typeof rawData === 'object' && rawData !== null) {
                     eventsArray = Object.values(rawData);
                 } else {
-                    // Data is neither array nor object.
                     break;
                 }
 
@@ -43,58 +40,69 @@ export class unstopScrapper {
                 }
 
                 // Process and filter the data
-                const processedEvents = this.processUnstopData(eventsArray);
+                const processedEvents = await this.processUnstopData(eventsArray);
                 allEvents = allEvents.concat(processedEvents);
-                
+
                 // Check if we have more pages
                 if (!paginatedData.next_page_url) {
-                    console.log(`✅ Reached last page (${currentPage}), stopping`);
                     break;
                 }
-                
+
                 currentPage++;
             }
 
             console.log(`✅ Total processed ${allEvents.length} hackathon/tech events from Unstop`);
             return allEvents;
-            
+
         } catch (error) {
             console.error('❌ Error fetching from Unstop API:', error.message);
             return [];
         }
     }
-
-    /* Process Unstop API data and filter for hackathons/tech events */
-    processUnstopData(rawData) {
+    
+    async processUnstopData(rawData) {
         const events = [];
 
-        for(let i = 0; i < rawData.length; i++){   
+        for (let i = 0; i < rawData.length; i++) {
             try {
                 const title = rawData[i]?.title;
                 if (!title || title.length < 5) {
                     continue; // Skip events with invalid titles
                 }
-                
-                const titleLower = title.toLowerCase(); 
+
+                const titleLower = title.toLowerCase();
 
                 const endDate = rawData[i].end_date;
                 if (endDate && this.isDatePast(endDate)) {
-                    console.log(`⏰ Skipping expired event: ${title}`);
+                    try {
+                        const { data: deletedData, error: deleteError } = await supabase
+                            .from('Event')
+                            .delete({count: 'planned'})
+                            .eq('title', title);
+                        
+                        if (deleteError) {
+                            console.log(`❌ Error deleting expired event "${title}": ${deleteError.message}`);
+                        } else {
+                            console.log(`⏰ Deleted expired event: ${title}`);
+                        }
+                    } catch (error) {
+                        console.log(`❌ Exception deleting expired event "${title}": ${error.message}`);
+                    }
                     continue;
                 }
 
                 // Create event object
                 const event = {
-                        title: title,
-                        description: this.extractDescription(rawData[i]),
-                        type: 'hackathons',
-                        startDate: this.formatDate(rawData[i].start_date),
-                        endDate: this.formatDate(rawData[i].end_date),
-                        deadline: this.extractDeadline(rawData[i]),
-                        tags: this.extractTags(rawData[i], titleLower),
-                        hostedBy: this.extractHostedBy(rawData[i]),
-                        verified: true,
-                        redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
+                    title: title,
+                    description: this.extractDescription(rawData[i]),
+                    type: 'hackathons',
+                    startDate: this.formatDate(rawData[i].start_date),
+                    endDate: this.formatDate(rawData[i].end_date),
+                    deadline: this.extractDeadline(rawData[i]),
+                    tags: this.extractTags(rawData[i], titleLower),
+                    hostedBy: this.extractHostedBy(rawData[i]),
+                    verified: true,
+                    redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
                 };
 
                 events.push(event);
@@ -110,7 +118,7 @@ export class unstopScrapper {
 
     extractDescription(item) {
         if (!item) return 'Event description not available';
-        
+
         let description = '';
 
         if (item.details) {
@@ -129,7 +137,7 @@ export class unstopScrapper {
                 `${item.title || 'Hackathon'} - Competition/Hackathon on Unstop`;
         }
 
-        return description.substring(0, 500); 
+        return description.substring(0, 500);
     }
 
     extractDeadline(item) {
@@ -141,7 +149,7 @@ export class unstopScrapper {
 
     extractTags(item, titleLower) {
         if (!item || !titleLower) return ['unstop'];
-        
+
         const tags = ['unstop'];
 
         if (item.type === 'hackathons') {
@@ -157,12 +165,12 @@ export class unstopScrapper {
         if (item.region) {
             tags.push(item.region);
         }
-        return [...new Set(tags)]; 
+        return [...new Set(tags)];
     }
 
     extractHostedBy(item) {
         if (!item) return 'Unstop';
-        
+
         if (item.organisation?.name) {
             return item.organisation.name;
         }
