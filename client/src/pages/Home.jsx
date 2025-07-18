@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getEvents, getSampleEvents } from '../services/api';
+import { getEvents} from '../services/api';
 import EventCard from '../components/EventCard';
 import './Home.css';
 
@@ -21,21 +21,6 @@ const Home = () => {
       setEvents(data || []);
     } catch (err) {
       console.error('Error fetching events:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLoadSampleEvents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const sampleData = await getSampleEvents();
-      console.log("Sample events fetched: ", sampleData);
-      setEvents(sampleData || []);
-    } catch (err) {
-      console.error('Error fetching sample events:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -65,16 +50,53 @@ const Home = () => {
     // Sort events
     switch (sortBy) {
       case 'newest':
-        filtered.sort((a, b) => new Date(b.startDate || b.created_at) - new Date(a.startDate || a.created_at));
+        // Sort by nearest upcoming start date first
+        filtered.sort((a, b) => {
+          const today = new Date();
+          const aDate = new Date(a.startDate);
+          const bDate = new Date(b.startDate);
+          
+          // If both dates are in the future, show nearest first
+          if (aDate >= today && bDate >= today) {
+            return aDate - bDate;
+          }
+          // If both dates are in the past, show most recent first
+          if (aDate < today && bDate < today) {
+            return bDate - aDate;
+          }
+          // If one is future and one is past, show future first
+          if (aDate >= today && bDate < today) {
+            return -1;
+          }
+          if (bDate >= today && aDate < today) {
+            return 1;
+          }
+          return 0;
+        });
         break;
       case 'oldest':
-        filtered.sort((a, b) => new Date(a.startDate || a.created_at) - new Date(b.startDate || b.created_at));
+        filtered.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         break;
       case 'deadline':
         filtered.sort((a, b) => {
+          const today = new Date();
           const aDeadline = new Date(a.deadline || a.endDate);
           const bDeadline = new Date(b.deadline || b.endDate);
-          return aDeadline - bDeadline;
+          
+          // Similar logic for deadlines - show nearest upcoming deadlines first
+          if (aDeadline >= today && bDeadline >= today) {
+            return aDeadline - bDeadline;
+          }
+          if (aDeadline < today && bDeadline < today) {
+            return bDeadline - aDeadline;
+          }
+          if (aDeadline >= today && bDeadline < today) {
+            return -1;
+          }
+          if (bDeadline >= today && aDeadline < today) {
+            return 1;
+          }
+          return 0;
         });
         break;
       case 'alphabetical':
@@ -290,15 +312,6 @@ const Home = () => {
                 <div className="empty-state">
                   <div className="empty-icon">🎯</div>
                   <h3>No events found</h3>
-                  <p>Use the automated scheduler above to scrape for new events, or load sample data to get started.</p>
-                  <div className="empty-actions">
-                    <button className="btn btn-secondary" onClick={handleLoadSampleEvents}>
-                      Load Sample Data
-                    </button>
-                    <button className="btn btn-primary" onClick={fetchEvents}>
-                      Refresh Events
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
