@@ -40,12 +40,19 @@ const Home = () => {
       );
     }
 
+    if (selectedPlatform === 'unstop') {
+      filtered = filtered.filter(event =>
+        event.tags?.includes('unstop')
+      );
+    }
+
     // Filter by platform
-    if (selectedPlatform !== 'all') {
+    if (selectedPlatform !== 'all' && selectedPlatform !== 'unstop') {
       filtered = filtered.filter(event => 
         event.hostedBy?.toLowerCase() === selectedPlatform.toLowerCase()
       );
     }
+
 
     // Sort events
     switch (sortBy) {
@@ -119,7 +126,9 @@ const Home = () => {
     const counts = {
       all: events.length,
       devfolio: events.filter(e => e.hostedBy?.toLowerCase() === 'devfolio').length,
-      unstop: events.filter(e => e.hostedBy?.toLowerCase() === 'unstop').length,
+      unstop: events.filter(e => 
+        e.tags?.includes('unstop')
+      ).length,
       eventbrite: events.filter(e => e.hostedBy?.toLowerCase() === 'eventbrite').length
     };
     return counts;
