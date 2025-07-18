@@ -218,32 +218,16 @@ const Home = () => {
                 {/* Platform Filter */}
                 <div className="filter-group">
                   <label className="filter-label">Platform</label>
-                  <div className="platform-filters">
-                    <button 
-                      className={`platform-filter ${selectedPlatform === 'all' ? 'active' : ''}`}
-                      onClick={() => setSelectedPlatform('all')}
-                    >
-                      All ({platformCounts.all})
-                    </button>
-                    <button 
-                      className={`platform-filter ${selectedPlatform === 'devfolio' ? 'active' : ''}`}
-                      onClick={() => setSelectedPlatform('devfolio')}
-                    >
-                      🚀 Devfolio ({platformCounts.devfolio})
-                    </button>
-                    <button 
-                      className={`platform-filter ${selectedPlatform === 'unstop' ? 'active' : ''}`}
-                      onClick={() => setSelectedPlatform('unstop')}
-                    >
-                      🎯 Unstop ({platformCounts.unstop})
-                    </button>
-                    <button 
-                      className={`platform-filter ${selectedPlatform === 'eventbrite' ? 'active' : ''}`}
-                      onClick={() => setSelectedPlatform('eventbrite')}
-                    >
-                      🎪 Eventbrite ({platformCounts.eventbrite})
-                    </button>
-                  </div>
+                  <select 
+                    value={selectedPlatform} 
+                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    className="platform-select"
+                  >
+                    <option value="all">All Platforms ({platformCounts.all})</option>
+                    <option value="devfolio">🚀 Devfolio ({platformCounts.devfolio})</option>
+                    <option value="unstop">🎯 Unstop ({platformCounts.unstop})</option>
+                    <option value="eventbrite">🎪 Eventbrite ({platformCounts.eventbrite})</option>
+                  </select>
                 </div>
 
                 {/* Sort Filter */}
