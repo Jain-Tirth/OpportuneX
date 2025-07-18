@@ -50,25 +50,25 @@ const Home = () => {
     // Sort events
     switch (sortBy) {
       case 'newest':
-        // Sort by nearest upcoming start date first
+        // Sort by nearest end date first (events ending soonest)
         filtered.sort((a, b) => {
           const today = new Date();
-          const aDate = new Date(a.startDate);
-          const bDate = new Date(b.startDate);
+          const aEndDate = new Date(a.endDate);
+          const bEndDate = new Date(b.endDate);
           
-          // If both dates are in the future, show nearest first
-          if (aDate >= today && bDate >= today) {
-            return aDate - bDate;
+          // If both end dates are in the future, show nearest ending first
+          if (aEndDate >= today && bEndDate >= today) {
+            return aEndDate - bEndDate;
           }
-          // If both dates are in the past, show most recent first
-          if (aDate < today && bDate < today) {
-            return bDate - aDate;
+          // If both end dates are in the past, show most recently ended first
+          if (aEndDate < today && bEndDate < today) {
+            return bEndDate - aEndDate;
           }
           // If one is future and one is past, show future first
-          if (aDate >= today && bDate < today) {
+          if (aEndDate >= today && bEndDate < today) {
             return -1;
           }
-          if (bDate >= today && aDate < today) {
+          if (bEndDate >= today && aEndDate < today) {
             return 1;
           }
           return 0;
@@ -245,9 +245,9 @@ const Home = () => {
                     onChange={(e) => setSortBy(e.target.value)}
                     className="sort-select"
                   >
-                    <option value="newest">Newest First</option>
+                    <option value="newest">Ending Soon First</option>
                     <option value="oldest">Oldest First</option>
-                    <option value="deadline">Deadline</option>
+                    <option value="deadline">By Deadline</option>
                     <option value="alphabetical">A-Z</option>
                   </select>
                 </div>
