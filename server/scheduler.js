@@ -7,62 +7,44 @@ let nextRunTime = null;
 let scheduledJob = null;
 
 const calculateNextRun = () => {
-  const now = new Date();
-  const hours = [0, 6, 12, 18];
+  const now = new Date(); 
   const next = new Date(now);
-  let nextHour = hours.find(h => h > now.getHours()) || hours[0];
-  if (nextHour <= now.getHours()) next.setDate(now.getDate() + 1);
-  next.setHours(nextHour, 0, 0, 0);
+  next.setHours(now.getHours() + 1, 0, 0, 0);
   return next;
 };
 
-const performScheduledScraping = async () => {
+// Auto-start scheduler when module loads
+scheduledJob = cron.schedule('0 0 * * * *', async () => {
   try {
     isSchedulerRunning = true;
     lastRunTime = new Date();
-
+    console.log('🕐 Starting scheduled scraping...');
+    
     const eventsData = await mainScrapping.scrapeHackathons();
     nextRunTime = calculateNextRun();
+    
+    console.log('✅ Scheduled scraping completed');
   } catch (error) {
-    console.error('❌ Scraping failed:', error.message);
+    console.error('❌ Scheduled scraping failed:', error.message);
   } finally {
     isSchedulerRunning = false;
   }
-};
+}, {
+  scheduled: true,
+  timezone: 'UTC'
+});
 
-export const startScheduler = () => {
-  scheduledJob = cron.schedule('0 0,6,12,18 * * *', performScheduledScraping, {
-    scheduled: true,
-    timezone: 'UTC'
-  });
-
-  nextRunTime = calculateNextRun();
-  performScheduledScraping();
-};
-
-export const stopScheduler = () => {
-  if (scheduledJob) {
-    scheduledJob.destroy();
-    scheduledJob = null;
-  }
-};
-
-export const triggerManualScraping = async () => {
-  if (isSchedulerRunning) throw new Error('Scraping already in progress');
-  await performScheduledScraping();
-};
+nextRunTime = calculateNextRun();
+console.log('🚀 Scheduler auto-started - next run:', nextRunTime);
 
 export const getSchedulerStatus = () => ({
   isRunning: !!scheduledJob,
   isCurrentlyScraping: isSchedulerRunning,
   lastRunTime,
   nextRunTime,
-  schedule: 'Every 6 hours (UTC)'
+  schedule: 'Every hour at 0 minutes (UTC)'
 });
 
 export default {
-  startScheduler,
-  stopScheduler,
-  getSchedulerStatus,
-  triggerManualScraping
+  getSchedulerStatus
 };

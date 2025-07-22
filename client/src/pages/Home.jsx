@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getEvents} from '../services/api';
 import EventCard from '../components/EventCard';
 import './Home.css';
@@ -28,7 +28,7 @@ const Home = () => {
   };
 
   // Filter and sort events
-  const filterAndSortEvents = () => {
+  const filterAndSortEvents = useCallback(() => {
     let filtered = [...events];
 
     // Filter by search term
@@ -114,12 +114,12 @@ const Home = () => {
     }
 
     setFilteredEvents(filtered);
-  };
+  }, [events, searchTerm, selectedPlatform, sortBy]);
 
   // Effect to filter events when dependencies change
   useEffect(() => {
     filterAndSortEvents();
-  }, [events, searchTerm, selectedPlatform, sortBy]);
+  }, [filterAndSortEvents]);
 
   // Get platform counts
   const getPlatformCounts = () => {

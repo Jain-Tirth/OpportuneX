@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://opportunex-backend-r1zl.onrender.com/api';
+// For React apps, environment variables must be prefixed with REACT_APP_
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api';
 
 // Fetch all events from the server
 export const getEvents = async () => {
