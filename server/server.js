@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { startScheduler } from './scheduler.js';
+import './scheduler.js'; // Import scheduler to auto-start it
 import eventRoutes from './routes/eventRoute.js';
 
 dotenv.config();
@@ -37,7 +37,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     
-    // Start the automated scraping scheduler
-    console.log('🚀 Starting automated event scraping scheduler...');
-    startScheduler();
+    // Start the automated scraping schedule.
 });

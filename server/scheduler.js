@@ -23,7 +23,6 @@ scheduledJob = cron.schedule('0 0 * * * *', async () => {
     const eventsData = await mainScrapping.scrapeHackathons();
     nextRunTime = calculateNextRun();
     
-    console.log('✅ Scheduled scraping completed');
   } catch (error) {
     console.error('❌ Scheduled scraping failed:', error.message);
   } finally {
@@ -35,7 +34,6 @@ scheduledJob = cron.schedule('0 0 * * * *', async () => {
 });
 
 nextRunTime = calculateNextRun();
-console.log('🚀 Scheduler auto-started - next run:', nextRunTime);
 
 export const getSchedulerStatus = () => ({
   isRunning: !!scheduledJob,
