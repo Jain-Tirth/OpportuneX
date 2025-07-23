@@ -33,48 +33,48 @@ export class devfolioScraper {
             return [];
         }
     }
-    async insertData(events) {
-        try {
-            for (let i = 0; i < events.length; i++) {
-                try {
-                    const { data: existingEvent, error: existingError } = await supabase
-                        .from('Event')
-                        .select('id')
-                        .eq('title', events[i].title)
-                        .eq('hostedBy', events[i].hostedBy)
-                        .limit(1);
+    // async insertData(events) {
+    //     try {
+    //         for (let i = 0; i < events.length; i++) {
+    //             try {
+    //                 const { data: existingEvent, error: existingError } = await supabase
+    //                     .from('Event')
+    //                     .select('id')
+    //                     .eq('title', events[i].title)
+    //                     .eq('hostedBy', events[i].hostedBy)
+    //                     .limit(1);
                     
-                    if (existingError) {
-                        continue;
-                    }
-                    if(this.isDatePast(events[i].endDate)){
-                        const{data:deletedData,error:deleteError}=await supabase
-                        .from('Event')
-                        .delete({count: 'planned'})
-                        .eq('title', events[i].title);
-                        if(deleteError){
-                            continue;
-                        }
-                    }
-                    if (existingEvent && existingEvent.length > 0) {
-                        continue;
-                    }
-                    const { data, error } = await supabase
-                        .from('Event')
-                        .insert([events[i]])
-                        .select();
+    //                 if (existingError) {
+    //                     continue;
+    //                 }
+    //                 if(this.isDatePast(events[i].endDate)){
+    //                     const{data:deletedData,error:deleteError}=await supabase
+    //                     .from('Event')
+    //                     .delete({count: 'planned'})
+    //                     .eq('title', events[i].title);
+    //                     if(deleteError){
+    //                         continue;
+    //                     }
+    //                 }
+    //                 if (existingEvent && existingEvent.length > 0) {
+    //                     continue;
+    //                 }
+    //                 const { data, error } = await supabase
+    //                     .from('Event')
+    //                     .insert([events[i]])
+    //                     .select();
                     
-                    if (error) {
-                        continue;
-                    }
-                } catch (eventError) {
-                    continue;
-                }
-            }
-        } catch (error) {
-            console.log("Error in inserting the data:", error.message);
-        }
-    }
+    //                 if (error) {
+    //                     continue;
+    //                 }
+    //             } catch (eventError) {
+    //                 continue;
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.log("Error in inserting the data:", error.message);
+    //     }
+    // }
 
     isDatePast(dateString){
         if (!dateString) return false;

@@ -3,9 +3,6 @@ import mainScrapping from '../scrappers/mainScrapping.js';
 
 export const scrapeEvents = async (req, res) => {
     try {
-        console.log('Starting multi-platform scraping process...');
-        
-        // Get events from all platforms
         const events = await mainScrapping.scrapeHackathons();
         
         if (!events || events.length === 0) {
@@ -18,7 +15,6 @@ export const scrapeEvents = async (req, res) => {
             });
         }
 
-        // Save scraped events to database
         const savedEvents = [];
         for (const event of events) {
             try {
@@ -49,23 +45,31 @@ export const scrapeEvents = async (req, res) => {
                 console.log('Exception saving event:', event.title, saveError.message);
             }
         }
-        
-        console.log(savedEvents.slice(0, 50));
-        return res.status(200).json({
-            message: 'Scraping completed',
-            scraped: events.length,
-            saved: savedEvents.length,
-            events: savedEvents
-        });
 
     } catch (error) {
         console.error('Error in scrapeEvents:', error);
-        return res.status(500).json({
-            error: 'Failed to scrape events',
-            details: error.message
-        });
     }
 };
+
+export const deleteExpireEvents = async() => {
+    try {
+        const today = new Date().toISOString().split('T')[0]; 
+    
+        const { data: deletedData, error: deleteError } = await supabase
+            .from('Event')
+            .delete({ count: 'exact' })
+            .lt('endDate', today)
+            .select();
+        
+        if (deleteError) {
+            console.log('❌ Error deleting expired events:', deleteError.message);
+            return { success: false, error: deleteError.message };
+        }
+        
+        
+    } catch (error) {
+    }
+}
 
 // ...existing code...
 export const getEvents = async (req, res) => {

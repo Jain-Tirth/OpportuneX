@@ -9,9 +9,8 @@ export class unstopScrapper {
         try {
             let allEvents = [];
             let currentPage = 1;
-            const maxPages = 3;
 
-            while (currentPage <= maxPages) {
+            while (currentPage <= 3) {
                 const pageUrl = `${this.baseUrl}&page=${currentPage}`;
 
                 const response = await axios.get(pageUrl);
@@ -33,7 +32,6 @@ export class unstopScrapper {
                     break;
                 }
 
-                // If no data on this page, we've reached the end
                 if (eventsArray.length === 0) {
                     console.log(`✅ No more data on page ${currentPage}, stopping`);
                     break;
@@ -74,20 +72,7 @@ export class unstopScrapper {
 
                 const endDate = rawData[i].end_date;
                 if (endDate && this.isDatePast(endDate)) {
-                    try {
-                        const { data: deletedData, error: deleteError } = await supabase
-                            .from('Event')
-                            .delete({count: 'planned'})
-                            .eq('title', title);
-                        
-                        if (deleteError) {
-                            console.log(`❌ Error deleting expired event "${title}": ${deleteError.message}`);
-                        } else {
-                            console.log(`⏰ Deleted expired event: ${title}`);
-                        }
-                    } catch (error) {
-                        console.log(`❌ Exception deleting expired event "${title}": ${error.message}`);
-                    }
+                    console.log(`⏰ Skipping expired event: ${title}`);
                     continue;
                 }
 
