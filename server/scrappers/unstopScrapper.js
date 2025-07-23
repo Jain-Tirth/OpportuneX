@@ -121,14 +121,6 @@ export class unstopScrapper {
 
         let description = '';
 
-        if (item.details) {
-            // Remove HTML tags and clean up
-            description = item.details.replace(/<[^>]*>/g, ' ')
-                .replace(/&nbsp;/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
         // If no details, use featured_title or other fields
         if (!description || description.length < 20) {
             description = item.featured_title ||

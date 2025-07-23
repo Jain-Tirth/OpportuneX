@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import mainScrapping from './scrappers/mainScrapping.js';
-
+import { scrapeEvents} from './controllers/eventController.js';
 let isSchedulerRunning = false;
 let lastRunTime = null;
 let nextRunTime = null;
@@ -21,6 +21,7 @@ scheduledJob = cron.schedule('0 0 * * * *', async () => {
     console.log('🕐 Starting scheduled scraping...');
     
     const eventsData = await mainScrapping.scrapeHackathons();
+    await scrapeEvents(eventsData);
     nextRunTime = calculateNextRun();
     
   } catch (error) {

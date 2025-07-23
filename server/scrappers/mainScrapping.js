@@ -1,11 +1,9 @@
 import  unstopScrapper  from './unstopScrapper.js';
 import devfolioScraper from './devfolioScraper.js';
-import { eventbriteScrapper } from './eventBriteScrapper.js';
 
 export class mainScrapping {
     constructor() {
         this.unstopScrapper = unstopScrapper ;
-        this.eventbriteScrapper = new eventbriteScrapper();
         this.devfolioScraper = devfolioScraper; 
         // this.devPostScrapper = new devPostScrapper();
     }
@@ -24,9 +22,6 @@ export class mainScrapping {
             const unstopEvents = await this.unstopScrapper.scrapeUnstop();
             allEvents.push(...unstopEvents);
 
-            // Scrape Eventbrite
-            // const eventbriteEvents = await this.eventbriteScrapper.scrapeEventbrite();
-            // allEvents.push(...eventbriteEvents);
             // Scrape Devpost 
             // const devPostEvent = await this.devPostScrapper.scrapeDevpost();
             // allEvents.push(...devPostEvent);
@@ -34,7 +29,6 @@ export class mainScrapping {
             console.log(`Total events found: ${allEvents.length}`);
             console.log(`- Devfolio: ${devfolioEvents.length}`);
             console.log(`- Unstop: ${unstopEvents.length}`);
-            // console.log(`- Eventbrite: ${eventbriteEvents.length}`);
             // console.log(`- Devpost: ${devPostEvent.length}`);
 
             return allEvents;

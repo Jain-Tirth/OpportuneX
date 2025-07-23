@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import './scheduler.js'; // Import scheduler to auto-start it
+import './scheduler.js';
 import eventRoutes from './routes/eventRoute.js';
+import schedulerRoutes from './routes/schedulerRoute.js';
 
 dotenv.config();
 
@@ -18,7 +19,6 @@ app.get('/test', (req, res) => {
 app.use('/api/events', eventRoutes);
 
 // Scheduler routes
-import schedulerRoutes from './routes/schedulerRoute.js';
 app.use('/api/scheduler', schedulerRoutes);
 
 // Error handling middleware
@@ -36,6 +36,4 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
-    
-    // Start the automated scraping schedule.
 });
