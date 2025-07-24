@@ -10,8 +10,6 @@ export class mainScrapping {
     }
 
     async scrapeHackathons() {
-        console.log('Starting multi-platform hackathon scraping...');
-
         const allEvents = [];
 
         try {
