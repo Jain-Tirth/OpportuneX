@@ -6,7 +6,7 @@ export class mainScrapping {
     constructor() {
         this.unstopScrapper = unstopScrapper ;
         this.devfolioScraper = devfolioScraper; 
-        this.devPostScrapper = new devPostScrapper();
+        this.devPostScrapper = devPostScrapper;
     }
 
     async scrapeHackathons() {

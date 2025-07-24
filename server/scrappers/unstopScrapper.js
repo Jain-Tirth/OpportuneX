@@ -1,5 +1,4 @@
-import axios from "axios";
-import supabase from '../supabase/client.js';
+import axios from 'axios';
 export class unstopScrapper {
     constructor() {
         this.baseUrl = "https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons";
@@ -22,7 +21,7 @@ export class unstopScrapper {
                 const paginatedData = response.data.data;
                 const rawData = paginatedData.data;
 
-                let eventsArray = Object.values(rawData);;
+                let eventsArray = Object.values(rawData);
 
                 if (eventsArray.length === 0) {
                     break;

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import supabase from '../supabase/client.js';
 export class devfolioScraper {
     constructor() {
         this.baseURL = 'https://api.devfolio.co/api/hackathons?filter=application_open&page=1';
@@ -54,7 +53,7 @@ export class devfolioScraper {
 
             return date.toISOString().split('T')[0];
         } catch (error) {
-            console.log(`Error formatting date "${dateString}": ${error.message}`);
+            console.error(`Error formatting date "${dateString}": ${error.message}`);
             return null;
         }
     }
