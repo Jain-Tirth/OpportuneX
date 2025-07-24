@@ -91,4 +91,9 @@ export class devPostScrapper {
         }
     }
 }
+
+const scrapper = new devPostScrapper();
+scrapper.scrapeDevpost().then((data) => {
+    console.log(data);
+})
 export default new devPostScrapper();

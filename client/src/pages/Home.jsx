@@ -129,7 +129,7 @@ const Home = () => {
       unstop: events.filter(e => 
         e.tags?.includes('unstop')
       ).length,
-      eventbrite: events.filter(e => e.hostedBy?.toLowerCase() === 'eventbrite').length
+      devpost: events.filter(e => e.hostedBy?.toLowerCase() === 'devpost').length
     };
     return counts;
   };
@@ -180,7 +180,7 @@ const Home = () => {
           <div className="section-header">
             <h2 className="section-title">Latest Events</h2>
             <p className="section-subtitle">
-              Handpicked hackathons and coding events from Devfolio, Unstop, and Eventbrite
+              Handpicked hackathons and coding events from Devfolio, Unstop, and Devpost
             </p>
           </div>
 
@@ -224,9 +224,9 @@ const Home = () => {
                     className="platform-select"
                   >
                     <option value="all">All Platforms ({platformCounts.all})</option>
-                    <option value="devfolio">🚀 Devfolio ({platformCounts.devfolio})</option>
-                    <option value="unstop">🎯 Unstop ({platformCounts.unstop})</option>
-                    <option value="eventbrite">🎪 Eventbrite ({platformCounts.eventbrite})</option>
+                    <option value="devfolio">Devfolio ({platformCounts.devfolio})</option>
+                    <option value="unstop">Unstop ({platformCounts.unstop})</option>
+                    <option value="devpost">Devpost ({platformCounts.devpost})</option>
                   </select>
                 </div>
 

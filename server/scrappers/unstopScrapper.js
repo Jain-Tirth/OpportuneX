@@ -16,24 +16,15 @@ export class unstopScrapper {
                 const response = await axios.get(pageUrl);
 
                 if (!response.data || !response.data.data) {
-                    console.log(`❌ No data found on page ${currentPage}`);
                     break;
                 }
 
                 const paginatedData = response.data.data;
                 const rawData = paginatedData.data;
 
-                let eventsArray = [];
-                if (Array.isArray(rawData)) {
-                    eventsArray = rawData;
-                } else if (typeof rawData === 'object' && rawData !== null) {
-                    eventsArray = Object.values(rawData);
-                } else {
-                    break;
-                }
+                let eventsArray = Object.values(rawData);;
 
                 if (eventsArray.length === 0) {
-                    console.log(`✅ No more data on page ${currentPage}, stopping`);
                     break;
                 }
 
@@ -48,16 +39,13 @@ export class unstopScrapper {
 
                 currentPage++;
             }
-
-            console.log(`✅ Total processed ${allEvents.length} hackathon/tech events from Unstop`);
             return allEvents;
 
         } catch (error) {
-            console.error('❌ Error fetching from Unstop API:', error.message);
             return [];
         }
     }
-    
+
     async processUnstopData(rawData) {
         const events = [];
 
@@ -72,7 +60,6 @@ export class unstopScrapper {
 
                 const endDate = rawData[i].end_date;
                 if (endDate && this.isDatePast(endDate)) {
-                    console.log(`⏰ Skipping expired event: ${title}`);
                     continue;
                 }
 
@@ -89,12 +76,8 @@ export class unstopScrapper {
                     verified: true,
                     redirectURL: rawData[i].public_url ? `https://unstop.com/${rawData[i].public_url}` : "https://unstop.com"
                 };
-
                 events.push(event);
-                console.log(`✅ Added event: ${event.title}`);
-
             } catch (error) {
-                console.log(`❌ Error processing event: ${error.message}`);
             }
         }
 
@@ -109,7 +92,6 @@ export class unstopScrapper {
         // If no details, use featured_title or other fields
         if (!description || description.length < 20) {
             description = item.featured_title ||
-                item.overall_prizes ||
                 item.seo_details?.[0]?.description ||
                 `${item.title || 'Hackathon'} - Competition/Hackathon on Unstop`;
         }
@@ -163,7 +145,6 @@ export class unstopScrapper {
 
             return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
         } catch (error) {
-            console.log(`Error formatting date "${dateString}": ${error.message}`);
             return null;
         }
     }
