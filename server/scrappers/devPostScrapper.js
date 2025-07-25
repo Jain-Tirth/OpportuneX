@@ -30,7 +30,7 @@ export class devPostScrapper {
                             const hackathon = data[i];
 
                             const { startDate, endDate } = this.getDate(hackathon.submission_period_dates);
-                            const deadline = this.getDeadline(hackathon.submission_period_dates);
+                            const deadline = this. getDeadline(hackathon.time_left_to_submission);
 
                             const event = {
                                 title: hackathon.title,
