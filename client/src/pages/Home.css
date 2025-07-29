@@ -89,6 +89,7 @@
   display: flex;
   gap: 16px;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
   animation: fadeInUp 0.8s ease-out 0.6s both;
 }
@@ -592,7 +593,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero {
-    padding: 80px 20px 60px;
+    padding: 80px 16px 60px;
   }
   
   .hero-title {
@@ -601,16 +602,20 @@
   
   .hero-description {
     font-size: 1.125rem;
+    padding: 0 16px;
   }
   
   .hero-actions {
     flex-direction: column;
     align-items: center;
+    gap: 12px;
+    padding: 0 16px;
   }
   
   .btn {
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
+    justify-content: center;
   }
   
   .events-grid {
@@ -652,12 +657,27 @@
 }
 
 @media (max-width: 480px) {
+  .hero {
+    padding: 60px 12px 50px;
+  }
+  
   .hero-title {
     font-size: 2rem;
   }
   
   .hero-description {
     font-size: 1rem;
+    padding: 0 12px;
+  }
+  
+  .hero-actions {
+    padding: 0 12px;
+  }
+  
+  .btn {
+    max-width: 100%;
+    padding: 16px 24px;
+    font-size: 15px;
   }
   
   .main-content {

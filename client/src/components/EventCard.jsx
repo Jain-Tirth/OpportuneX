@@ -17,19 +17,6 @@ const EventCard = ({ event }) => {
     }
   };
 
-  const getHostedByIcon = (hostedBy) => {
-    switch (hostedBy?.toLowerCase()) {
-      case 'devfolio':
-        return '🚀';
-      case 'unstop':
-        return '🎯';
-      case 'eventbrite':
-        return '🎪';
-      default:
-        return '🌟';
-    }
-  };
-
   const getEventTypeColor = (type) => {
     switch (type?.toLowerCase()) {
       case 'hackathon':
@@ -47,7 +34,6 @@ const EventCard = ({ event }) => {
     <div className="event-card">
       <div className="event-card-header">
         <div className="event-badge">
-          <span className="badge-icon">{getHostedByIcon(event.hostedBy || event.hosted_by)}</span>
           <span className="badge-text">{event.hostedBy || event.hosted_by}</span>
         </div>
         {event.verified && (
@@ -64,7 +50,7 @@ const EventCard = ({ event }) => {
         <h3 className="event-title">{event.title}</h3>
         <p className="event-description">
           {event.description?.substring(0, 150)}
-          {event.description?.length > 150 ? '...' : ''}
+          {event.description?.length > 60 ? '...' : ''}
         </p>
 
         <div className="event-tags">
