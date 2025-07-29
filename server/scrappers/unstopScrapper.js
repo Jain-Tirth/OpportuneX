@@ -69,7 +69,7 @@ export class unstopScrapper {
                     type: 'hackathons',
                     startDate: this.formatDate(rawData[i].start_date),
                     endDate: this.formatDate(rawData[i].end_date),
-                    deadline: this.extractDeadline(rawData[i].regnRequirements.end_regn_dt),
+                    deadline: this.extractDeadline(this.formatDate(rawData[i].regnRequirements.end_regn_dt)),
                     tags: this.extractTags(rawData[i], titleLower),
                     hostedBy: this.extractHostedBy(rawData[i]),
                     verified: true,
@@ -97,10 +97,7 @@ export class unstopScrapper {
     }
 
     extractDeadline(item) {
-        if (item.regnRequirements?.end_regn_dt) {
-            return this.formatDate(item.regnRequirements.remainingDaysArray);
-        }
-        return null;
+        return this.formatDate(item);
     }
 
     extractTags(item, titleLower) {
@@ -140,7 +137,7 @@ export class unstopScrapper {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return null;
 
-            return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+            return date.toISOString().split('T')[0];
         } catch (error) {
             return null;
         }
@@ -158,5 +155,6 @@ export class unstopScrapper {
         }
     }
 }
-
+const abc = new unstopScrapper();
+const data = abc.scrapeUnstop();
 export default new unstopScrapper();
