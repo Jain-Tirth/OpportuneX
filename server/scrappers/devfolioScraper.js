@@ -22,7 +22,7 @@ export class devfolioScraper {
                     hostedBy: 'Devfolio',
                     verified: true,
                     type: 'hackathon',
-                    deadline: this.normalizeDate(event.submission_ends_at),
+                    deadline: this.normalizeDate(event.hackathon_setting.reg_ends_at),
                 });
             }
             return events;

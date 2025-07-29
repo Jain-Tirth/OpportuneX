@@ -69,7 +69,7 @@ export class unstopScrapper {
                     type: 'hackathons',
                     startDate: this.formatDate(rawData[i].start_date),
                     endDate: this.formatDate(rawData[i].end_date),
-                    deadline: this.extractDeadline(rawData[i]),
+                    deadline: this.extractDeadline(rawData[i].regnRequirements.end_regn_dt),
                     tags: this.extractTags(rawData[i], titleLower),
                     hostedBy: this.extractHostedBy(rawData[i]),
                     verified: true,
@@ -87,8 +87,6 @@ export class unstopScrapper {
         if (!item) return 'Event description not available';
 
         let description = '';
-
-        // If no details, use featured_title or other fields
         if (!description || description.length < 20) {
             description = item.featured_title ||
                 item.seo_details?.[0]?.description ||
