@@ -1,22 +1,20 @@
 import supabase from '../supabase/client.js';
 import mainScrapping from '../scrappers/mainScrapping.js';
 
-export const scrapeEvents = async (req, res) => {
+export const scrapeEvents = async (events) => {
     try {
-        const events = await mainScrapping.scrapeHackathons();
-
-        if (!events || events.length === 0) {
-            const sampleEvents = mainScrapping.getSampleData();
-            return res.status(200).json({
-                message: 'No events scraped, returned sample data',
-                events: sampleEvents,
-                count: sampleEvents.length
-            });
+        const resolvedEvents = await Promise.resolve(events);
+        
+        if (!resolvedEvents || resolvedEvents.length === 0) {
+            console.log('No events received to process');
+            return { success: false, message: 'No events to process' };
         }
 
         const savedEvents = [];
-        for (const event of events) {
+        for (let i = 0; i < resolvedEvents.length; i++) {
             try {
+                const event = resolvedEvents[i];
+                
                 const { data: existingEvent, error: existingError } = await supabase
                     .from('Event')
                     .select('id')
@@ -32,18 +30,27 @@ export const scrapeEvents = async (req, res) => {
                     .from('Event')
                     .insert([event])
                     .select();
+                    
                 if (error) {
                     console.error('Error saving event:', event.title, error.message);
                 } else {
                     savedEvents.push(data[0]);
                 }
             } catch (saveError) {
-                console.error('Exception saving event:', event.title, saveError.message);
+                console.error('Exception saving event:', event?.title, saveError.message);
             }
         }
+        
+        return { 
+            success: true, 
+            scraped: resolvedEvents.length, 
+            saved: savedEvents.length,
+            events: savedEvents 
+        };
 
     } catch (error) {
         console.error('Error in scrapeEvents:', error);
+        return { success: false, error: error.message };
     }
 };
 
