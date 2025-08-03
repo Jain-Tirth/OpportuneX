@@ -74,7 +74,7 @@ export const deleteExpireEvents = async () => {
         console.error('Exception in deleteExpireEvents:', error.message);
     }
 }
-}
+
 
 export const getEvents = async (req, res) => {
     const { data, error } = await supabase.from('Event').select('*').order('deadline', { ascending: true });
