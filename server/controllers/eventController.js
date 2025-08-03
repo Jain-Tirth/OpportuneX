@@ -61,7 +61,7 @@ export const deleteExpireEvents = async () => {
         const { data: deletedData, error: deleteError } = await supabase
             .from('Event')
             .delete({ count: 'exact' })
-            .lt('endDate', today)
+            .lt('deadline', today)
             .select();
 
         if (deleteError) {
@@ -71,7 +71,9 @@ export const deleteExpireEvents = async () => {
 
 
     } catch (error) {
+        console.error('Exception in deleteExpireEvents:', error.message);
     }
+}
 }
 
 export const getEvents = async (req, res) => {
