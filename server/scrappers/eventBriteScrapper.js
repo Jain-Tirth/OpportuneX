@@ -5,7 +5,6 @@ export class eventbriteScrapper {
     constructor() {
         this.platform = {
             eventbrite: {
-                baseUrl: 'https://www.eventbrite.com',
                 hackathonsUrl: 'https://www.eventbrite.com/d/online/hackathon/',
                 name: 'Eventbrite'
             }

@@ -35,17 +35,6 @@ export const scrapeEvents = async () => {
   }
 };
 
-// Get sample events
-export const getSampleEvents = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/events/sample`);
-    return response.data.events;
-  } catch (error) {
-    console.error('Sample API Error:', error.response?.data || error.message);
-    throw new Error(error.response?.data?.error || 'Failed to fetch sample events');
-  }
-};
-
 // Scheduler API functions
 export const getSchedulerStatus = async () => {
   try {

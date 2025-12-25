@@ -1,10 +1,10 @@
 import express from 'express';
 const router = express.Router();
 
-import { getEvents, addEvents, scrapeEvents} from "../controllers/eventController.js";
+import { getEvents, addEvents, scrapeEventsHandler } from "../controllers/eventController.js";
 
 router.get("/", getEvents);
 router.post("/", addEvents);
-router.get("/scrape", scrapeEvents);
+router.get("/scrape", scrapeEventsHandler);
 
 export default router;

@@ -22,7 +22,9 @@ scheduledJob = cron.schedule('0 0 * * * *', async () => {
     
     const eventsData = await mainScrapping.scrapeHackathons();
     await deleteExpireEvents();
-    await scrapeEvents(eventsData);
+    if((await scrapeEvents(eventsData)).success){
+      console.log('✅ Scheduled scraping completed successfully');
+    }  
     nextRunTime = calculateNextRun();
     
   } catch (error) {
@@ -45,6 +47,56 @@ export const getSchedulerStatus = () => ({
   schedule: 'Every hour at 0 minutes (UTC)'
 });
 
+export const triggerManualScraping = async () => {
+  if (isSchedulerRunning) {
+    throw new Error('Scraping is already in progress');
+  }
+  
+  try {
+    isSchedulerRunning = true;
+    lastRunTime = new Date();
+    console.log('🔄 Starting manual scraping (triggered via API)...');
+    
+    const eventsData = await mainScrapping.scrapeHackathons();
+    await deleteExpireEvents();
+    const result = await scrapeEvents(eventsData);
+    
+    if (result.success) {
+      console.log('✅ Manual scraping completed successfully');
+      console.log(`   Scraped: ${result.scraped}, Saved: ${result.saved}`);
+    }
+    
+    nextRunTime = calculateNextRun();
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Manual scraping failed:', error.message);
+    throw error;
+  } finally {
+    isSchedulerRunning = false;
+  }
+};
+
+export const startScheduler = () => {
+  if (!scheduledJob) {
+    throw new Error('Scheduler is not initialized');
+  }
+  scheduledJob.start();
+  nextRunTime = calculateNextRun();
+  console.log('✅ Scheduler started');
+};
+
+export const stopScheduler = () => {
+  if (!scheduledJob) {
+    throw new Error('Scheduler is not initialized');
+  }
+  scheduledJob.stop();
+  console.log('⏸️ Scheduler stopped');
+};
+
 export default {
-  getSchedulerStatus
+  getSchedulerStatus,
+  triggerManualScraping,
+  startScheduler,
+  stopScheduler
 };

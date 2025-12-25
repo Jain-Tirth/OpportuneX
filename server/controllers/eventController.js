@@ -37,7 +37,7 @@ export const scrapeEvents = async (events) => {
                     savedEvents.push(data[0]);
                 }
             } catch (saveError) {
-                console.error('Exception saving event:', event?.title, saveError.message);
+                console.error('Exception saving event:', resolvedEvents[i]?.title, saveError.message);
             }
         }
         
@@ -113,5 +113,50 @@ export const addEvents = async (req, res) => {
         return res.status(201).json(data);
     } catch (err) {
         return res.status(500).json({ error: 'Server error: ' + err.message });
+    }
+}
+
+// Route handler for scraping events via API
+export const scrapeEventsHandler = async (req, res) => {
+    try {
+        console.log('🔄 Starting manual scraping...');
+        
+        // Send immediate response
+        res.status(202).json({
+            success: true,
+            message: 'Scraping started in background',
+            status: 'processing'
+        });
+        
+        // Run scraping in background (don't await)
+        (async () => {
+            try {
+                // Scrape events from all platforms
+                const eventsData = await mainScrapping.scrapeHackathons();
+                
+                // Delete expired events
+                await deleteExpireEvents();
+                
+                // Save scraped events to database
+                const result = await scrapeEvents(eventsData);
+                
+                if (result.success) {
+                    console.log('✅ Manual scraping completed successfully');
+                    console.log(`   Scraped: ${result.scraped}, Saved: ${result.saved}`);
+                } else {
+                    console.error('⚠️ Scraping completed with issues:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ Background scraping failed:', error.message);
+            }
+        })();
+        
+    } catch (error) {
+        console.error('❌ Failed to start scraping:', error.message);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to start scraping',
+            error: error.message
+        });
     }
 }

@@ -146,7 +146,7 @@ const Home = () => {
       <div className="hero">
         <div className="hero-content">
           <div className="hero-badge">
-            <span className="badge-text">🚀 Discover Amazing Opportunities</span>
+            <span className="badge-text">Discover Amazing Opportunities</span>
           </div>
           <h1 className="hero-title">
             Explore <span className="gradient-text">Hackathons</span> & Events
@@ -179,9 +179,6 @@ const Home = () => {
           {/* Section Header */}
           <div className="section-header">
             <h2 className="section-title">Latest Events</h2>
-            <p className="section-subtitle">
-              Handpicked hackathons and coding events from Devfolio, Unstop, and Devpost
-            </p>
           </div>
 
           {/* Search and Filter Controls */}
@@ -244,15 +241,6 @@ const Home = () => {
                     <option value="alphabetical">A-Z</option>
                   </select>
                 </div>
-              </div>
-
-              {/* Results Count */}
-              <div className="results-info">
-                <span className="results-count">
-                  {filteredEvents.length} of {events.length} events
-                  {searchTerm && ` for "${searchTerm}"`}
-                  {selectedPlatform !== 'all' && ` from ${selectedPlatform}`}
-                </span>
               </div>
             </div>
           )}

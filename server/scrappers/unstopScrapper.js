@@ -155,6 +155,4 @@ export class unstopScrapper {
         }
     }
 }
-const abc = new unstopScrapper();
-const data = abc.scrapeUnstop();
 export default new unstopScrapper();

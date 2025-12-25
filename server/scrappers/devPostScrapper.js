@@ -48,21 +48,21 @@ export class devPostScrapper {
                             events.push(event);
 
                         } catch (eventError) {
-                            console.error(`❌ Error processing DevPost event:`, eventError.message);
+                            console.error(`Error processing DevPost event:`, eventError.message);
                         }
                     }
 
                     page++;
 
                 } catch (pageError) {
-                    console.error(`❌ Error fetching DevPost page ${page}:`, pageError.message);
+                    console.error(`Error fetching DevPost page ${page}:`, pageError.message);
                     break;
                 }
             }
             return events;
 
         } catch (error) {
-            console.error('❌ Error in DevPost scraping:', error.message);
+            console.error('Error in DevPost scraping:', error.message);
             return [];
         }
     }
@@ -140,7 +140,7 @@ export class devPostScrapper {
             };
 
         } catch (error) {
-            console.log(`❌ Error parsing date "${dateString}":`, error.message);
+            console.log(`Error parsing date "${dateString}":`, error.message);
             return { startDate: null, endDate: null };
         }
     }

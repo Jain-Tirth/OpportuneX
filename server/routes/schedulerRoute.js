@@ -52,7 +52,7 @@ router.post('/stop', (req, res) => {
 });
 
 // Trigger manual scraping
-router.post('/trigger', async (req, res) => {
+router.get('/trigger', async (req, res) => {
     try {
         await scheduler.triggerManualScraping();
         res.json({
