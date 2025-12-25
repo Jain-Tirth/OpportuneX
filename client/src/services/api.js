@@ -68,7 +68,7 @@ export const stopScheduler = async () => {
 
 export const triggerManualScraping = async () => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/scheduler/trigger`);
+    const response = await axios.get(`${API_BASE_URL}/scheduler/trigger`);
     return response.data;
   } catch (error) {
     console.error('Manual Scraping API Error:', error.response?.data || error.message);

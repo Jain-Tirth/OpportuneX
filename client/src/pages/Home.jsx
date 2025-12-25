@@ -220,10 +220,10 @@ const Home = () => {
                     onChange={(e) => setSelectedPlatform(e.target.value)}
                     className="platform-select"
                   >
-                    <option value="all">All Platforms ({platformCounts.all})</option>
-                    <option value="devfolio">Devfolio ({platformCounts.devfolio})</option>
-                    <option value="unstop">Unstop ({platformCounts.unstop})</option>
-                    <option value="devpost">Devpost ({platformCounts.devpost})</option>
+                    <option value="all">All Platforms </option>
+                    <option value="devfolio">Devfolio </option>
+                    <option value="unstop">Unstop </option>
+                    <option value="devpost">Devpost</option>
                   </select>
                 </div>
 
