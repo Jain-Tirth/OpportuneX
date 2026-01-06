@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getEvents} from '../services/api';
+import { getEvents } from '../services/api';
 import EventCard from '../components/EventCard';
 import './Home.css';
 
@@ -11,7 +11,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage] = useState(12); // You can make this changeable
@@ -37,7 +37,7 @@ const Home = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(event => 
+      filtered = filtered.filter(event =>
         event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -52,7 +52,7 @@ const Home = () => {
 
     // Filter by platform
     if (selectedPlatform !== 'all' && selectedPlatform !== 'unstop') {
-      filtered = filtered.filter(event => 
+      filtered = filtered.filter(event =>
         event.hostedBy?.toLowerCase() === selectedPlatform.toLowerCase()
       );
     }
@@ -64,7 +64,7 @@ const Home = () => {
           const today = new Date();
           const aEndDate = new Date(a.endDate);
           const bEndDate = new Date(b.endDate);
-          
+
           if (aEndDate >= today && bEndDate >= today) {
             return aEndDate - bEndDate;
           }
@@ -88,7 +88,7 @@ const Home = () => {
           const today = new Date();
           const aDeadline = new Date(a.deadline || a.endDate);
           const bDeadline = new Date(b.deadline || b.endDate);
-          
+
           if (aDeadline >= today && bDeadline >= today) {
             return aDeadline - bDeadline;
           }
@@ -140,7 +140,7 @@ const Home = () => {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
-    
+
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
@@ -168,7 +168,7 @@ const Home = () => {
         pageNumbers.push(totalPages);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -184,14 +184,14 @@ const Home = () => {
             Explore <span className="gradient-text">Hackathons</span> & Events
           </h1>
           <p className="hero-description">
-            Discover cutting-edge hackathons, coding competitions, and tech events from top platforms. 
+            Discover cutting-edge hackathons, coding competitions, and tech events from top platforms.
             Join the innovation community and build the future.
           </p>
-          
+
           {/* Action Buttons */}
           <div className="hero-actions">
-            <button 
-              className="btn btn-primary" 
+            <button
+              className="btn btn-primary"
               onClick={fetchEvents}
               disabled={loading}
             >
@@ -207,15 +207,10 @@ const Home = () => {
       {/* Main Content */}
       <div className="main-content">
         <div className="container">
-          
+
           {/* Section Header */}
           <div className="section-header">
             <h2 className="section-title">Latest Events</h2>
-            {!loading && !error && filteredEvents.length > 0 && (
-              <p className="results-count">
-                Showing {indexOfFirstEvent + 1}-{Math.min(indexOfLastEvent, filteredEvents.length)} of {filteredEvents.length} events
-              </p>
-            )}
           </div>
 
           {/* Search and Filter Controls */}
@@ -235,7 +230,7 @@ const Home = () => {
                     className="search-input"
                   />
                   {searchTerm && (
-                    <button 
+                    <button
                       className="search-clear"
                       onClick={() => setSearchTerm('')}
                     >
@@ -252,8 +247,8 @@ const Home = () => {
                 {/* Platform Filter */}
                 <div className="filter-group">
                   <label className="filter-label">Platform</label>
-                  <select 
-                    value={selectedPlatform} 
+                  <select
+                    value={selectedPlatform}
                     onChange={(e) => setSelectedPlatform(e.target.value)}
                     className="platform-select"
                   >
@@ -267,8 +262,8 @@ const Home = () => {
                 {/* Sort Filter */}
                 <div className="filter-group">
                   <label className="filter-label">Sort by</label>
-                  <select 
-                    value={sortBy} 
+                  <select
+                    value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="sort-select"
                   >
