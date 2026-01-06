@@ -1,29 +1,34 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config();
 export class devfolioScraper {
     constructor() {
-        this.baseURL = 'https://api.devfolio.co/api/hackathons?filter=application_open&page=1';
+        this.baseURL = process.env.DEVFOLIO_API_URL;
     }
 
     async scrapeDevfolio() {
         try {
-            const response = await axios.get(this.baseURL);
-            const data = response.data.result || [];
-            const events = [];
+            for (let i = 1; i <= 2; i++) {
+                const response = await axios.get(`${this.baseURL}?&page=${i}`);
+                const data = response.data.result || [];
+                const events = [];
 
-            for (let i = 0; i < data.length; i++) {
-                let event = data[i];
-                events.push({
-                    title: event.name,
-                    description: event.desc,
-                    tags: event.tagline ? [event.tagline] : ['hackathon'], // Convert string to array
-                    startDate: this.normalizeDate(event.starts_at),
-                    endDate: this.normalizeDate(event.ends_at),
-                    redirectURL: `https://${event.slug}.devfolio.co`,
-                    hostedBy: 'Devfolio',
-                    verified: true,
-                    type: 'hackathon',
-                    deadline: this.normalizeDate(event.hackathon_setting.reg_ends_at),
-                });
+
+                for (let i = 0; i < data.length; i++) {
+                    let event = data[i];
+                    events.push({
+                        title: event.name,
+                        description: event.desc,
+                        tags: event.tagline ? [event.tagline] : ['hackathon'], // Convert string to array
+                        startDate: this.normalizeDate(event.starts_at),
+                        endDate: this.normalizeDate(event.ends_at),
+                        redirectURL: `https://${event.slug}.devfolio.co`,
+                        hostedBy: 'Devfolio',
+                        verified: true,
+                        type: 'hackathon',
+                        deadline: this.normalizeDate(event.hackathon_setting.reg_ends_at),
+                    });
+                }
             }
             return events;
 
@@ -32,7 +37,7 @@ export class devfolioScraper {
         }
     }
 
-    isDatePast(dateString){
+    isDatePast(dateString) {
         if (!dateString) return false;
 
         try {
@@ -43,7 +48,7 @@ export class devfolioScraper {
             return false;
         }
     }
-    
+
     normalizeDate(dateString) {
         if (!dateString) return null;
 

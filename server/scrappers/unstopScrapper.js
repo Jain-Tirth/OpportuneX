@@ -1,7 +1,7 @@
 import axios from 'axios';
 export class unstopScrapper {
     constructor() {
-        this.baseUrl = "https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons";
+        this.baseUrl = process.env.UNSTOP_API;
     }
 
     async scrapeUnstop() {

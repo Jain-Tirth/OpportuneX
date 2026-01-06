@@ -16,7 +16,7 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Server is working!' });
 });
 
-app.use('/api/events', eventRoutes);
+app.use('/api/events', eventRoutes);    
 
 // Scheduler routes
 app.use('/api/scheduler', schedulerRoutes);

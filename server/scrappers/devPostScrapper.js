@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export class devPostScrapper {
     constructor() {
-        this.baseURL = 'https://devpost.com/api/hackathons/';
+        this.baseURL = process.env.DEVPOST_API;
     }
 
     async scrapeDevpost() {
