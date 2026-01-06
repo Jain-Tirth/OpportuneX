@@ -11,6 +11,10 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [eventsPerPage] = useState(12); // You can make this changeable
 
   const fetchEvents = async () => {
     try {
@@ -53,25 +57,20 @@ const Home = () => {
       );
     }
 
-
     // Sort events
     switch (sortBy) {
       case 'newest':
-        // Sort by nearest end date first (events ending soonest)
         filtered.sort((a, b) => {
           const today = new Date();
           const aEndDate = new Date(a.endDate);
           const bEndDate = new Date(b.endDate);
           
-          // If both end dates are in the future, show nearest ending first
           if (aEndDate >= today && bEndDate >= today) {
             return aEndDate - bEndDate;
           }
-          // If both end dates are in the past, show most recently ended first
           if (aEndDate < today && bEndDate < today) {
             return bEndDate - aEndDate;
           }
-          // If one is future and one is past, show future first
           if (aEndDate >= today && bEndDate < today) {
             return -1;
           }
@@ -90,7 +89,6 @@ const Home = () => {
           const aDeadline = new Date(a.deadline || a.endDate);
           const bDeadline = new Date(b.deadline || b.endDate);
           
-          // Similar logic for deadlines - show nearest upcoming deadlines first
           if (aDeadline >= today && bDeadline >= today) {
             return aDeadline - bDeadline;
           }
@@ -114,6 +112,7 @@ const Home = () => {
     }
 
     setFilteredEvents(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [events, searchTerm, selectedPlatform, sortBy]);
 
   // Effect to filter events when dependencies change
@@ -121,24 +120,57 @@ const Home = () => {
     filterAndSortEvents();
   }, [filterAndSortEvents]);
 
-  // Get platform counts
-  const getPlatformCounts = () => {
-    const counts = {
-      all: events.length,
-      devfolio: events.filter(e => e.hostedBy?.toLowerCase() === 'devfolio').length,
-      unstop: events.filter(e => 
-        e.tags?.includes('unstop')
-      ).length,
-      devpost: events.filter(e => e.hostedBy?.toLowerCase() === 'devpost').length
-    };
-    return counts;
-  };
-
-  const platformCounts = getPlatformCounts();
-
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Pagination logic
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+  const currentEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
 
   return (
     <div className="home">
@@ -179,6 +211,11 @@ const Home = () => {
           {/* Section Header */}
           <div className="section-header">
             <h2 className="section-title">Latest Events</h2>
+            {!loading && !error && filteredEvents.length > 0 && (
+              <p className="results-count">
+                Showing {indexOfFirstEvent + 1}-{Math.min(indexOfLastEvent, filteredEvents.length)} of {filteredEvents.length} events
+              </p>
+            )}
           </div>
 
           {/* Search and Filter Controls */}
@@ -269,33 +306,78 @@ const Home = () => {
 
           {/* Events Grid */}
           {!loading && !error && (
-            <div className="events-grid">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((event, index) => (
-                  <EventCard key={index} event={event} />
-                ))
-              ) : events.length > 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">🔍</div>
-                  <h3>No events found</h3>
-                  <p>No events match your current search and filter criteria.</p>
-                  <div className="empty-actions">
-                    <button className="btn btn-secondary" onClick={() => {
-                      setSearchTerm('');
-                      setSelectedPlatform('all');
-                      setSortBy('newest');
-                    }}>
-                      Clear Filters
-                    </button>
+            <>
+              <div className="events-grid">
+                {currentEvents.length > 0 ? (
+                  currentEvents.map((event, index) => (
+                    <EventCard key={index} event={event} />
+                  ))
+                ) : events.length > 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">🔍</div>
+                    <h3>No events found</h3>
+                    <p>No events match your current search and filter criteria.</p>
+                    <div className="empty-actions">
+                      <button className="btn btn-secondary" onClick={() => {
+                        setSearchTerm('');
+                        setSelectedPlatform('all');
+                        setSortBy('newest');
+                      }}>
+                        Clear Filters
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <div className="empty-icon">🎯</div>
-                  <h3>No events found</h3>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-icon">🎯</div>
+                    <h3>No events found</h3>
+                  </div>
+                )}
+              </div>
+
+              {/* Pagination */}
+              {filteredEvents.length > eventsPerPage && (
+                <div className="pagination">
+                  <button
+                    className="pagination-btn"
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </button>
+
+                  <div className="pagination-numbers">
+                    {getPageNumbers().map((number, index) => (
+                      number === '...' ? (
+                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                      ) : (
+                        <button
+                          key={number}
+                          onClick={() => paginate(number)}
+                          className={`pagination-number ${currentPage === number ? 'active' : ''}`}
+                        >
+                          {number}
+                        </button>
+                      )
+                    ))}
+                  </div>
+
+                  <button
+                    className="pagination-btn"
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
