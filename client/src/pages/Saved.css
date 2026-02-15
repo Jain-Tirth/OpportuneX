@@ -1,0 +1,137 @@
+.saved-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(236, 72, 153, 0.05));
+}
+
+.saved-hero {
+  padding: 80px 20px 40px;
+  text-align: center;
+}
+
+.saved-hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.saved-hero h1 {
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.saved-hero p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.saved-back {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: #6366f1;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.saved-content {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 520px;
+  margin: 40px auto;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.auth-input {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  font-size: 16px;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.auth-status {
+  display: block;
+  margin-top: 16px;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.saved-loading {
+  text-align: center;
+  padding: 40px 0;
+  color: #64748b;
+}
+
+.saved-error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 16px 20px;
+  border-radius: 12px;
+  max-width: 700px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.saved-empty {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.saved-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}

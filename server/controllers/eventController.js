@@ -56,24 +56,71 @@ export const scrapeEvents = async (events) => {
 
 export const deleteExpireEvents = async () => {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStart = new Date(`${todayStr}T00:00:00Z`);
 
-        const { data: deletedData, error: deleteError } = await supabase
+        const isBlank = (value) => value === null || value === undefined || String(value).trim() === '';
+
+        const isPastDate = (value) => {
+            if (isBlank(value)) return false;
+
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                    return trimmed < todayStr;
+                }
+                const parsed = new Date(trimmed);
+                if (Number.isNaN(parsed.getTime())) return false;
+                return parsed < todayStart;
+            }
+
+            if (value instanceof Date) {
+                return value < todayStart;
+            }
+
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return false;
+            return parsed < todayStart;
+        };
+
+        const { data: events, error: fetchError } = await supabase
             .from('Event')
-            .delete({ count: 'exact' })
-            .lt('deadline', today)
-            .select();
+            .select('id, deadline, startDate, endDate');
+
+        if (fetchError) {
+            console.error('❌ Error fetching events for cleanup:', fetchError.message);
+            return { success: false, error: fetchError.message };
+        }
+
+        const idsToDelete = (events || [])
+            .filter((event) => {
+                const deadlinePast = isPastDate(event.deadline);
+                const startPast = isPastDate(event.startDate);
+                const endPast = isPastDate(event.endDate);
+
+                return deadlinePast || startPast || endPast;
+            })
+            .map((event) => event.id);
+
+        if (idsToDelete.length === 0) {
+            return { success: true, deleted: 0 };
+        }
+
+        const { error: deleteError, count } = await supabase
+            .from('Event')
+            .delete()
+            .in('id', idsToDelete);
 
         if (deleteError) {
             console.error('❌ Error deleting expired events:', deleteError.message);
             return { success: false, error: deleteError.message };
         }
 
-
+        return { success: true, deleted: count || idsToDelete.length };
     } catch (error) {
         console.error('Exception in deleteExpireEvents:', error.message);
     }
-}
+};
 
 
 export const getEvents = async (req, res) => {

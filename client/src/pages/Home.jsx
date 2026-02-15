@@ -1,7 +1,56 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { getEvents } from '../services/api';
 import EventCard from '../components/EventCard';
+import { supabase } from '../lib/supaBaseClient';
 import './Home.css';
+
+const normalizeText = (value) => (value || '').toString().toLowerCase();
+
+const getEventSearchBlob = (event) => {
+  const tags = Array.isArray(event.tags) ? event.tags.join(' ') : '';
+  return normalizeText(
+    `${event.title || ''} ${event.description || ''} ${tags} ${event.hostedBy || ''} ${event.location || ''}`
+  );
+};
+
+const hasKeyword = (blob, keywords) =>
+  keywords.some((keyword) => blob.includes(keyword));
+
+const isEventFree = (event) => {
+  const blob = getEventSearchBlob(event);
+  return hasKeyword(blob, ['free', 'no fee', 'zero fee', 'free entry']);
+};
+
+const isEventOnline = (event) => {
+  const blob = getEventSearchBlob(event);
+  return hasKeyword(blob, ['online', 'virtual', 'remote', 'zoom', 'discord', 'google meet', 'meet.google']);
+};
+
+const isEventBeginner = (event) => {
+  const blob = getEventSearchBlob(event);
+  return hasKeyword(blob, [
+    'beginner',
+    'beginners',
+    'first time',
+    'first-time',
+    'no experience',
+    'novice',
+    'introductory',
+    'freshers'
+  ]);
+};
+
+const isEventPrize = (event) => {
+  const blob = getEventSearchBlob(event);
+  return hasKeyword(blob, ['prize', 'cash', 'award', 'scholarship', '$', '₹', 'inr', 'usd', 'swag']);
+};
+
+const getEventKey = (event) => {
+  if (event?.id) return `id:${event.id}`;
+  if (event?.redirectURL) return `url:${event.redirectURL}`;
+  return `title:${event?.title || 'event'}|${event?.hostedBy || 'host'}`;
+};
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -11,6 +60,18 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [filterFree, setFilterFree] = useState(false);
+  const [filterOnline, setFilterOnline] = useState(false);
+  const [filterBeginner, setFilterBeginner] = useState(false);
+  const [filterPrize, setFilterPrize] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
+
+  const [user, setUser] = useState(null);
+  const [savedEventKeys, setSavedEventKeys] = useState([]);
+  const [savingKey, setSavingKey] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authStatus, setAuthStatus] = useState('');
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +90,22 @@ const Home = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const savedKeys = useMemo(() => new Set(savedEventKeys), [savedEventKeys]);
+
+  const fetchSavedKeys = async (currentUser) => {
+    const { data, error: fetchError } = await supabase
+      .from('saved_events')
+      .select('event_key')
+      .eq('user_id', currentUser.id);
+
+    if (fetchError) {
+      console.error('Failed to load saved events:', fetchError.message);
+      return;
+    }
+
+    setSavedEventKeys((data || []).map((row) => row.event_key));
   };
 
   // Filter and sort events
@@ -55,6 +132,27 @@ const Home = () => {
       filtered = filtered.filter(event =>
         event.hostedBy?.toLowerCase() === selectedPlatform.toLowerCase()
       );
+    }
+
+    if (filterFree) {
+      filtered = filtered.filter(isEventFree);
+    }
+
+    if (filterOnline) {
+      filtered = filtered.filter(isEventOnline);
+    }
+
+    if (filterBeginner) {
+      filtered = filtered.filter(isEventBeginner);
+    }
+
+    if (filterPrize) {
+      filtered = filtered.filter(isEventPrize);
+    }
+
+    if (locationQuery.trim()) {
+      const query = locationQuery.trim().toLowerCase();
+      filtered = filtered.filter((event) => getEventSearchBlob(event).includes(query));
     }
 
     // Sort events
@@ -104,6 +202,27 @@ const Home = () => {
           return 0;
         });
         break;
+      case 'endingSoon':
+        filtered.sort((a, b) => {
+          const today = new Date();
+          const aTarget = new Date(a.deadline || a.endDate);
+          const bTarget = new Date(b.deadline || b.endDate);
+
+          if (aTarget >= today && bTarget >= today) {
+            return aTarget - bTarget;
+          }
+          if (aTarget < today && bTarget < today) {
+            return bTarget - aTarget;
+          }
+          if (aTarget >= today && bTarget < today) {
+            return -1;
+          }
+          if (bTarget >= today && aTarget < today) {
+            return 1;
+          }
+          return 0;
+        });
+        break;
       case 'alphabetical':
         filtered.sort((a, b) => a.title?.localeCompare(b.title));
         break;
@@ -113,7 +232,17 @@ const Home = () => {
 
     setFilteredEvents(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [events, searchTerm, selectedPlatform, sortBy]);
+  }, [
+    events,
+    searchTerm,
+    selectedPlatform,
+    sortBy,
+    filterFree,
+    filterOnline,
+    filterBeginner,
+    filterPrize,
+    locationQuery
+  ]);
 
   // Effect to filter events when dependencies change
   useEffect(() => {
@@ -122,6 +251,38 @@ const Home = () => {
 
   useEffect(() => {
     fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      const currentUser = data.session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchSavedKeys(currentUser);
+      }
+    };
+
+    initSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
+      if (!mounted) return;
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchSavedKeys(currentUser);
+      } else {
+        setSavedEventKeys([]);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Pagination logic
@@ -172,6 +333,79 @@ const Home = () => {
     return pageNumbers;
   };
 
+  const handleSignIn = async (event) => {
+    event.preventDefault();
+    setAuthStatus('');
+
+    if (!authEmail.trim()) {
+      setAuthStatus('Please enter your email.');
+      return;
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithOtp({
+      email: authEmail.trim(),
+      options: { emailRedirectTo: window.location.origin }
+    });
+
+    if (signInError) {
+      setAuthStatus(signInError.message);
+      return;
+    }
+
+    setAuthStatus('Check your email for the sign-in link.');
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const handleToggleSave = async (event) => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    const key = getEventKey(event);
+
+    try {
+      setSavingKey(key);
+      if (savedKeys.has(key)) {
+        const { error: deleteError } = await supabase
+          .from('saved_events')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('event_key', key);
+
+        if (deleteError) {
+          throw new Error(deleteError.message);
+        }
+
+        setSavedEventKeys((prev) => prev.filter((item) => item !== key));
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from('saved_events')
+        .insert([
+          {
+            user_id: user.id,
+            event_key: key,
+            event: event
+          }
+        ]);
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+
+      setSavedEventKeys((prev) => [key, ...prev]);
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setSavingKey('');
+    }
+  };
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -200,6 +434,14 @@ const Home = () => {
               </svg>
               Refresh Events
             </button>
+            <Link className="btn btn-secondary" to="/saved">
+              Saved Events
+            </Link>
+            {user && (
+              <button className="btn btn-secondary" onClick={handleSignOut}>
+                Sign out
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -268,11 +510,85 @@ const Home = () => {
                     className="sort-select"
                   >
                     <option value="newest">Ending Soon First</option>
+                    <option value="endingSoon">Deadline Priority</option>
                     <option value="oldest">Oldest First</option>
                     <option value="deadline">By Deadline</option>
                     <option value="alphabetical">A-Z</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="filter-chips">
+                <label className={`chip ${filterFree ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterFree}
+                    onChange={(e) => setFilterFree(e.target.checked)}
+                  />
+                  Free
+                </label>
+                <label className={`chip ${filterOnline ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterOnline}
+                    onChange={(e) => setFilterOnline(e.target.checked)}
+                  />
+                  Online
+                </label>
+                <label className={`chip ${filterBeginner ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterBeginner}
+                    onChange={(e) => setFilterBeginner(e.target.checked)}
+                  />
+                  Beginner
+                </label>
+                <label className={`chip ${filterPrize ? 'active' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterPrize}
+                    onChange={(e) => setFilterPrize(e.target.checked)}
+                  />
+                  Prize
+                </label>
+                <div className="location-filter">
+                  <input
+                    type="text"
+                    value={locationQuery}
+                    onChange={(e) => setLocationQuery(e.target.value)}
+                    placeholder="Location or region"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showAuthPrompt && !user && (
+            <div className="auth-banner">
+              <div className="auth-banner-content">
+                <div>
+                  <h4>Sign in to save events</h4>
+                  <p>We will send a magic link to your email.</p>
+                </div>
+                <form onSubmit={handleSignIn} className="auth-banner-form">
+                  <input
+                    type="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                  <button type="submit" className="btn btn-primary">
+                    Send Link
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowAuthPrompt(false)}
+                  >
+                    Later
+                  </button>
+                </form>
+                {authStatus && <span className="auth-status">{authStatus}</span>}
               </div>
             </div>
           )}
@@ -304,9 +620,19 @@ const Home = () => {
             <>
               <div className="events-grid">
                 {currentEvents.length > 0 ? (
-                  currentEvents.map((event, index) => (
-                    <EventCard key={index} event={event} />
-                  ))
+                  currentEvents.map((event, index) => {
+                    const eventKey = getEventKey(event);
+                    return (
+                      <EventCard
+                        key={index}
+                        event={event}
+                        eventKey={eventKey}
+                        isSaved={savedKeys.has(eventKey)}
+                        onToggleSave={handleToggleSave}
+                        savingKey={savingKey}
+                      />
+                    );
+                  })
                 ) : events.length > 0 ? (
                   <div className="empty-state">
                     <div className="empty-icon">🔍</div>
@@ -317,6 +643,11 @@ const Home = () => {
                         setSearchTerm('');
                         setSelectedPlatform('all');
                         setSortBy('newest');
+                        setFilterFree(false);
+                        setFilterOnline(false);
+                        setFilterBeginner(false);
+                        setFilterPrize(false);
+                        setLocationQuery('');
                       }}>
                         Clear Filters
                       </button>
