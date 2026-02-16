@@ -3,16 +3,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 export class devfolioScraper {
     constructor() {
-        this.baseURL = process.env.DEVFOLIO_API_URL;
+        this.baseURL = process.env.DEVFOLIO_API;
     }
 
     async scrapeDevfolio() {
         try {
+            const events = [];
+            
             for (let i = 1; i <= 2; i++) {
                 const response = await axios.get(`${this.baseURL}&page=${i}`);
                 const data = response.data.result || [];
-                const events = [];
-
 
                 for (let i = 0; i < data.length; i++) {
                     let event = data[i];

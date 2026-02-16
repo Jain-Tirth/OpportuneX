@@ -1,4 +1,8 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 export class unstopScrapper {
     constructor() {
         this.baseUrl = process.env.UNSTOP_API;

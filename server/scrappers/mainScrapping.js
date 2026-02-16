@@ -25,7 +25,7 @@ export class mainScrapping {
 
         } catch (error) {
             console.error('Error in multi-platform scraping:', error);
-            return allEvents; // Return whatever we got so far
+            return allEvents; 
         }
     }
 }

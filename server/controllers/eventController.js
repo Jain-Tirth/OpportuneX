@@ -166,7 +166,7 @@ export const addEvents = async (req, res) => {
 // Route handler for scraping events via API
 export const scrapeEventsHandler = async (req, res) => {
     try {
-        console.log('🔄 Starting manual scraping...');
+        console.log('Starting manual scraping...');
         
         // Send immediate response
         res.status(202).json({
@@ -188,7 +188,7 @@ export const scrapeEventsHandler = async (req, res) => {
                 const result = await scrapeEvents(eventsData);
                 
                 if (result.success) {
-                    console.log('✅ Manual scraping completed successfully');
+                    console.log('Manual scraping completed successfully');
                     console.log(`   Scraped: ${result.scraped}, Saved: ${result.saved}`);
                 } else {
                     console.error('⚠️ Scraping completed with issues:', result.message);
