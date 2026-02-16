@@ -9,7 +9,7 @@ export class devfolioScraper {
     async scrapeDevfolio() {
         try {
             for (let i = 1; i <= 2; i++) {
-                const response = await axios.get(`${this.baseURL}?&page=${i}`);
+                const response = await axios.get(`${this.baseURL}&page=${i}`);
                 const data = response.data.result || [];
                 const events = [];
 
