@@ -5,47 +5,6 @@ import EventCard from '../components/EventCard';
 import { supabase } from '../lib/supaBaseClient';
 import './Home.css';
 
-const normalizeText = (value) => (value || '').toString().toLowerCase();
-
-const getEventSearchBlob = (event) => {
-  const tags = Array.isArray(event.tags) ? event.tags.join(' ') : '';
-  return normalizeText(
-    `${event.title || ''} ${event.description || ''} ${tags} ${event.hostedBy || ''} ${event.location || ''}`
-  );
-};
-
-const hasKeyword = (blob, keywords) =>
-  keywords.some((keyword) => blob.includes(keyword));
-
-const isEventFree = (event) => {
-  const blob = getEventSearchBlob(event);
-  return hasKeyword(blob, ['free', 'no fee', 'zero fee', 'free entry']);
-};
-
-const isEventOnline = (event) => {
-  const blob = getEventSearchBlob(event);
-  return hasKeyword(blob, ['online', 'virtual', 'remote', 'zoom', 'discord', 'google meet', 'meet.google']);
-};
-
-const isEventBeginner = (event) => {
-  const blob = getEventSearchBlob(event);
-  return hasKeyword(blob, [
-    'beginner',
-    'beginners',
-    'first time',
-    'first-time',
-    'no experience',
-    'novice',
-    'introductory',
-    'freshers'
-  ]);
-};
-
-const isEventPrize = (event) => {
-  const blob = getEventSearchBlob(event);
-  return hasKeyword(blob, ['prize', 'cash', 'award', 'scholarship', '$', '₹', 'inr', 'usd', 'swag']);
-};
-
 const getEventKey = (event) => {
   if (event?.id) return `id:${event.id}`;
   if (event?.redirectURL) return `url:${event.redirectURL}`;
@@ -54,10 +13,10 @@ const getEventKey = (event) => {
 
 const Home = () => {
   const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [filterFree, setFilterFree] = useState(false);
@@ -76,21 +35,56 @@ const Home = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [eventsPerPage] = useState(12); // You can make this changeable
+  const [serverMeta, setServerMeta] = useState({ page: 1, limit: 12, total: 0, totalPages: 1 });
 
-  const fetchEvents = async () => {
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 300);
+
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
+  const fetchEvents = useCallback(async ({ page = 1 } = {}) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getEvents();
-      console.log("Events fetched: ", data);
-      setEvents(data || []);
+      const payload = await getEvents({
+        page,
+        limit: eventsPerPage,
+        search: debouncedSearch,
+        platform: selectedPlatform,
+        sortBy,
+        free: filterFree,
+        online: filterOnline,
+        beginner: filterBeginner,
+        prize: filterPrize,
+        location: locationQuery
+      });
+      setEvents(payload?.data || []);
+      setServerMeta({
+        page: payload?.page || page,
+        limit: payload?.limit || eventsPerPage,
+        total: payload?.total || 0,
+        totalPages: payload?.totalPages || 1
+      });
     } catch (err) {
       console.error('Error fetching events:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    eventsPerPage,
+    debouncedSearch,
+    filterBeginner,
+    filterFree,
+    filterOnline,
+    filterPrize,
+    locationQuery,
+    selectedPlatform,
+    sortBy
+  ]);
 
   const savedKeys = useMemo(() => new Set(savedEventKeys), [savedEventKeys]);
 
@@ -108,133 +102,14 @@ const Home = () => {
     setSavedEventKeys((data || []).map((row) => row.event_key));
   };
 
-  // Filter and sort events
-  const filterAndSortEvents = useCallback(() => {
-    let filtered = [...events];
+  useEffect(() => {
+    fetchEvents({ page: currentPage });
+  }, [currentPage, fetchEvents]);
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(event =>
-        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    if (selectedPlatform === 'unstop') {
-      filtered = filtered.filter(event =>
-        event.tags?.includes('unstop')
-      );
-    }
-
-    // Filter by platform
-    if (selectedPlatform !== 'all' && selectedPlatform !== 'unstop') {
-      filtered = filtered.filter(event =>
-        event.hostedBy?.toLowerCase() === selectedPlatform.toLowerCase()
-      );
-    }
-
-    if (filterFree) {
-      filtered = filtered.filter(isEventFree);
-    }
-
-    if (filterOnline) {
-      filtered = filtered.filter(isEventOnline);
-    }
-
-    if (filterBeginner) {
-      filtered = filtered.filter(isEventBeginner);
-    }
-
-    if (filterPrize) {
-      filtered = filtered.filter(isEventPrize);
-    }
-
-    if (locationQuery.trim()) {
-      const query = locationQuery.trim().toLowerCase();
-      filtered = filtered.filter((event) => getEventSearchBlob(event).includes(query));
-    }
-
-    // Sort events
-    switch (sortBy) {
-      case 'newest':
-        filtered.sort((a, b) => {
-          const today = new Date();
-          const aEndDate = new Date(a.endDate);
-          const bEndDate = new Date(b.endDate);
-
-          if (aEndDate >= today && bEndDate >= today) {
-            return aEndDate - bEndDate;
-          }
-          if (aEndDate < today && bEndDate < today) {
-            return bEndDate - aEndDate;
-          }
-          if (aEndDate >= today && bEndDate < today) {
-            return -1;
-          }
-          if (bEndDate >= today && aEndDate < today) {
-            return 1;
-          }
-          return 0;
-        });
-        break;
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-        break;
-      case 'deadline':
-        filtered.sort((a, b) => {
-          const today = new Date();
-          const aDeadline = new Date(a.deadline || a.endDate);
-          const bDeadline = new Date(b.deadline || b.endDate);
-
-          if (aDeadline >= today && bDeadline >= today) {
-            return aDeadline - bDeadline;
-          }
-          if (aDeadline < today && bDeadline < today) {
-            return bDeadline - aDeadline;
-          }
-          if (aDeadline >= today && bDeadline < today) {
-            return -1;
-          }
-          if (bDeadline >= today && aDeadline < today) {
-            return 1;
-          }
-          return 0;
-        });
-        break;
-      case 'endingSoon':
-        filtered.sort((a, b) => {
-          const today = new Date();
-          const aTarget = new Date(a.deadline || a.endDate);
-          const bTarget = new Date(b.deadline || b.endDate);
-
-          if (aTarget >= today && bTarget >= today) {
-            return aTarget - bTarget;
-          }
-          if (aTarget < today && bTarget < today) {
-            return bTarget - aTarget;
-          }
-          if (aTarget >= today && bTarget < today) {
-            return -1;
-          }
-          if (bTarget >= today && aTarget < today) {
-            return 1;
-          }
-          return 0;
-        });
-        break;
-      case 'alphabetical':
-        filtered.sort((a, b) => a.title?.localeCompare(b.title));
-        break;
-      default:
-        break;
-    }
-
-    setFilteredEvents(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [
-    events,
-    searchTerm,
+    debouncedSearch,
     selectedPlatform,
     sortBy,
     filterFree,
@@ -244,14 +119,11 @@ const Home = () => {
     locationQuery
   ]);
 
-  // Effect to filter events when dependencies change
   useEffect(() => {
-    filterAndSortEvents();
-  }, [filterAndSortEvents]);
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (currentPage > serverMeta.totalPages) {
+      setCurrentPage(serverMeta.totalPages || 1);
+    }
+  }, [currentPage, serverMeta.totalPages]);
 
   useEffect(() => {
     let mounted = true;
@@ -286,10 +158,9 @@ const Home = () => {
   }, []);
 
   // Pagination logic
-  const indexOfLastEvent = currentPage * eventsPerPage;
-  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-  const currentEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
-  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+  const currentEvents = events;
+  const totalPages = serverMeta.totalPages;
+  const showPagination = totalPages > 1;
 
   // Change page
   const paginate = (pageNumber) => {
@@ -590,7 +461,7 @@ const Home = () => {
               <div className="error-content">
                 <h3>Oops! Something went wrong</h3>
                 <p>{error}</p>
-                <button className="btn btn-sm" onClick={fetchEvents}>
+                <button className="btn btn-sm" onClick={() => fetchEvents({ page: currentPage })}>
                   Try Again
                 </button>
               </div>
@@ -652,7 +523,7 @@ const Home = () => {
               </div>
 
               {/* Pagination */}
-              {filteredEvents.length > eventsPerPage && (
+              {showPagination && (
                 <div className="pagination">
                   <button
                     className="pagination-btn"

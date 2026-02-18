@@ -124,13 +124,193 @@ export const deleteExpireEvents = async () => {
 
 
 export const getEvents = async (req, res) => {
-    const { data, error } = await supabase.from('Event').select('*').order('deadline', { ascending: true });
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), 100);
+
+    const search = String(req.query.search || '').trim();
+    const platform = String(req.query.platform || 'all').trim().toLowerCase();
+    const sortBy = String(req.query.sortBy || 'newest').trim();
+    const filterFree = String(req.query.free || '').toLowerCase() === 'true';
+    const filterOnline = String(req.query.online || '').toLowerCase() === 'true';
+    const filterBeginner = String(req.query.beginner || '').toLowerCase() === 'true';
+    const filterPrize = String(req.query.prize || '').toLowerCase() === 'true';
+    const locationQuery = String(req.query.location || '').trim();
+
+    const normalizeText = (value) => (value || '').toString().toLowerCase();
+    const getEventSearchBlob = (event) => {
+        const tags = Array.isArray(event.tags) ? event.tags.join(' ') : '';
+        return normalizeText(
+            `${event.title || ''} ${event.description || ''} ${tags} ${event.hostedBy || ''} ${event.location || ''}`
+        );
+    };
+    const hasKeyword = (blob, keywords) =>
+        keywords.some((keyword) => blob.includes(keyword));
+    const isEventFree = (event) => hasKeyword(getEventSearchBlob(event), ['free', 'no fee', 'zero fee', 'free entry']);
+    const isEventOnline = (event) => hasKeyword(getEventSearchBlob(event), [
+        'online',
+        'virtual',
+        'remote',
+        'zoom',
+        'discord',
+        'google meet',
+        'meet.google'
+    ]);
+    const isEventBeginner = (event) => hasKeyword(getEventSearchBlob(event), [
+        'beginner',
+        'beginners',
+        'first time',
+        'first-time',
+        'no experience',
+        'novice',
+        'introductory',
+        'freshers'
+    ]);
+    const isEventPrize = (event) => hasKeyword(getEventSearchBlob(event), [
+        'prize',
+        'cash',
+        'award',
+        'scholarship',
+        '$',
+        'inr',
+        'usd',
+        'swag'
+    ]);
+
+    const { data: allEvents, error } = await supabase
+        .from('Event')
+        .select('*');
 
     if (error) {
         return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json(data);
+    let filtered = [...(allEvents || [])];
+
+    if (search) {
+        const searchLower = search.toLowerCase();
+        filtered = filtered.filter((event) =>
+            event.title?.toLowerCase().includes(searchLower) ||
+            event.description?.toLowerCase().includes(searchLower) ||
+            event.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+        );
+    }
+
+    if (platform === 'unstop') {
+        filtered = filtered.filter((event) => event.tags?.includes('unstop'));
+    }
+
+    if (platform !== 'all' && platform !== 'unstop') {
+        filtered = filtered.filter((event) => event.hostedBy?.toLowerCase() === platform);
+    }
+
+    if (filterFree) {
+        filtered = filtered.filter(isEventFree);
+    }
+
+    if (filterOnline) {
+        filtered = filtered.filter(isEventOnline);
+    }
+
+    if (filterBeginner) {
+        filtered = filtered.filter(isEventBeginner);
+    }
+
+    if (filterPrize) {
+        filtered = filtered.filter(isEventPrize);
+    }
+
+    if (locationQuery) {
+        const locationLower = locationQuery.toLowerCase();
+        filtered = filtered.filter((event) => getEventSearchBlob(event).includes(locationLower));
+    }
+
+    switch (sortBy) {
+        case 'newest':
+            filtered.sort((a, b) => {
+                const today = new Date();
+                const aEndDate = new Date(a.endDate);
+                const bEndDate = new Date(b.endDate);
+
+                if (aEndDate >= today && bEndDate >= today) {
+                    return aEndDate - bEndDate;
+                }
+                if (aEndDate < today && bEndDate < today) {
+                    return bEndDate - aEndDate;
+                }
+                if (aEndDate >= today && bEndDate < today) {
+                    return -1;
+                }
+                if (bEndDate >= today && aEndDate < today) {
+                    return 1;
+                }
+                return 0;
+            });
+            break;
+        case 'oldest':
+            filtered.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            break;
+        case 'deadline':
+            filtered.sort((a, b) => {
+                const today = new Date();
+                const aDeadline = new Date(a.deadline || a.endDate);
+                const bDeadline = new Date(b.deadline || b.endDate);
+
+                if (aDeadline >= today && bDeadline >= today) {
+                    return aDeadline - bDeadline;
+                }
+                if (aDeadline < today && bDeadline < today) {
+                    return bDeadline - aDeadline;
+                }
+                if (aDeadline >= today && bDeadline < today) {
+                    return -1;
+                }
+                if (bDeadline >= today && aDeadline < today) {
+                    return 1;
+                }
+                return 0;
+            });
+            break;
+        case 'endingSoon':
+            filtered.sort((a, b) => {
+                const today = new Date();
+                const aTarget = new Date(a.deadline || a.endDate);
+                const bTarget = new Date(b.deadline || b.endDate);
+
+                if (aTarget >= today && bTarget >= today) {
+                    return aTarget - bTarget;
+                }
+                if (aTarget < today && bTarget < today) {
+                    return bTarget - aTarget;
+                }
+                if (aTarget >= today && bTarget < today) {
+                    return -1;
+                }
+                if (bTarget >= today && aTarget < today) {
+                    return 1;
+                }
+                return 0;
+            });
+            break;
+        case 'alphabetical':
+            filtered.sort((a, b) => a.title?.localeCompare(b.title));
+            break;
+        default:
+            break;
+    }
+
+    const total = filtered.length;
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
+    const safePage = Math.min(page, totalPages);
+    const from = (safePage - 1) * limit;
+    const data = filtered.slice(from, from + limit);
+
+    return res.status(200).json({
+        data,
+        page: safePage,
+        limit,
+        total,
+        totalPages
+    });
 }
 
 export const addEvents = async (req, res) => {
