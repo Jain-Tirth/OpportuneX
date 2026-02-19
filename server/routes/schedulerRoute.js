@@ -51,13 +51,15 @@ router.post('/stop', (req, res) => {
     }
 });
 
-// Trigger manual scraping
+
+// Trigger scraping (for Vercel cron job or manual call)
 router.get('/trigger', async (req, res) => {
     try {
-        await scheduler.triggerManualScraping();
+        const result = await scheduler.triggerManualScraping();
         res.json({
             success: true,
-            message: 'Manual scraping completed successfully'
+            message: 'Scraping completed successfully',
+            result
         });
     } catch (error) {
         res.status(500).json({
