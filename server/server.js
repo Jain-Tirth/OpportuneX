@@ -8,7 +8,16 @@ import schedulerRoutes from './routes/schedulerRoute.js';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Test route
