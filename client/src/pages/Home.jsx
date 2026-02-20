@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { getEvents } from '../services/api';
 import EventCard from '../components/EventCard';
 import { supabase } from '../lib/supaBaseClient';
