@@ -1,15 +1,15 @@
-# OpportuneX - Multi-Platform Hackathon & Event Aggregator
+# UniStop - Multi-Platform Hackathon & Event Aggregator
 
 A robust, full-stack application that automatically aggregates hackathons and tech events from multiple platforms including Devfolio, Unstop, Eventbrite, and Devpost. Features a modern React frontend with automated backend scraping and real-time scheduler management.
 
-## 🌟 Features
+## Features
 
 ### Backend
 - **Multi-Platform Scraping**: Automated data collection from 4 major platforms
-  - 🏆 **Devfolio** - Premium hackathon platform
-  - 🚀 **Unstop** - Competitions and hackathons  
-  - 🎫 **Eventbrite** - Event management platform
-  - 💻 **Devpost** - Developer showcase platform
+  - **Devfolio** - Premium hackathon platform
+  - **Unstop** - Competitions and hackathons  
+  - **Eventbrite** - Event management platform
+  - **Devpost** - Developer showcase platform
 - **Intelligent Data Processing**: Event normalization, duplicate detection, and tag extraction
 - **Automated Scheduler**: Node-cron based system with start/stop/manual trigger controls
 - **REST API**: Full CRUD operations with filtering capabilities
@@ -24,7 +24,7 @@ A robust, full-stack application that automatically aggregates hackathons and te
 - **Statistics Dashboard**: Event counts and platform insights
 - **Mobile Responsive**: Optimized for all device sizes
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 16+ 
@@ -36,8 +36,8 @@ A robust, full-stack application that automatically aggregates hackathons and te
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Jain-Tirth/OpportuneX.git
-   cd OpportuneX
+   git clone https://github.com/Jain-Tirth/UniStop.git
+   cd UniStop
    ```
 
 2. **Setup Backend**
@@ -98,10 +98,10 @@ A robust, full-stack application that automatically aggregates hackathons and te
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-OpportuneX/
+UniStop/
 ├── client/                 # React Frontend
 │   ├── public/
 │   ├── src/
@@ -132,10 +132,10 @@ OpportuneX/
 │   ├── scheduler.js       # Cron job manager
 │   ├── server.js         # Main server file
 │   └── package.json
-└── render.yaml           # Deployment config
+└─
 ```
 
-## 🔧 API Endpoints
+## API Endpoints
 
 ### Events
 - `GET /api/events` - Fetch all events
@@ -149,7 +149,7 @@ OpportuneX/
 - `POST /api/scheduler/stop` - Stop automated scheduling  
 - `POST /api/scheduler/trigger` - Manual scraping trigger
 
-## 🤖 Automated Scraping
+## Automated Scraping
 
 The system runs automated scraping every 2 hours using node-cron:
 
@@ -168,7 +168,7 @@ The system runs automated scraping every 2 hours using node-cron:
 - Registration URLs
 - Prize information (when available)
 
-## 🎨 Frontend Features
+## Frontend Features
 
 ### Components
 - **EventCard**: Displays event information with beautiful styling
@@ -181,20 +181,7 @@ The system runs automated scraping every 2 hours using node-cron:
 - Safari compatibility optimizations
 - Dark theme elements
 
-## 🚀 Deployment
-
-### Backend (Render)
-The backend is configured for deployment on Render using `render.yaml`:
-
-```yaml
-# Auto-deployed from GitHub
-services:
-  - type: web
-    name: opportunex-backend
-    env: node
-    buildCommand: npm install
-    startCommand: npm start
-```
+## Deployment
 
 ### Frontend (Vercel)
 The frontend can be deployed on Vercel:
@@ -211,7 +198,7 @@ Set these in your deployment platform:
 - `SUPABASE_KEY`
 - `NODE_ENV=production`
 
-## 🛠️ Development
+## Development
 
 ### Adding New Scrapers
 1. Create new scraper file in `server/scrappers/`
@@ -244,15 +231,15 @@ Events must follow this structure:
 ```
 
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
+## Author
 
 **Jain-Tirth**
 - GitHub: [@Jain-Tirth](https://github.com/Jain-Tirth)
-- Project: [OpportuneX](https://github.com/Jain-Tirth/OpportuneX)
+- Project: [UniStop](https://github.com/Jain-Tirth/UniStop)
 
 
-**⭐ Star this repository if you find it helpful!**
+**Star this repository if you find it helpful!**
