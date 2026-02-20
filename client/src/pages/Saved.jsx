@@ -100,10 +100,6 @@ const Saved = () => {
     setAuthStatus('Check your email for the sign-in link.');
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   const handleToggleSave = async (event) => {
     if (!user) return;
     const key = getEventKey(event);
@@ -151,62 +147,85 @@ const Saved = () => {
   };
 
   return (
-    <div className="saved-page">
-      <div className="saved-hero">
-        <div className="saved-hero-content">
-          <Link className="saved-back" to="/">
+    <div className="saved">
+      {/* Hero */}
+      <div className="saved__hero">
+        <div className="saved__hero-bg">
+          <div className="saved__orb saved__orb--1" />
+          <div className="saved__orb saved__orb--2" />
+        </div>
+        <div className="saved__hero-content">
+          <Link className="saved__back" to="/home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
             Back to Events
           </Link>
-          <h1>Saved Events</h1>
+          <h1>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-4px', marginRight: '8px', color: 'var(--accent-cyan)' }}>
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+            </svg>
+            Saved Events
+          </h1>
           <p>Keep track of the opportunities you want to join.</p>
-          {user && (
-            <button className="btn btn-secondary" onClick={handleSignOut}>
-              Sign out
-            </button>
+          {savedEvents.length > 0 && (
+            <span className="saved__count">{savedEvents.length} saved</span>
           )}
         </div>
       </div>
 
-      <div className="saved-content">
+      {/* Content */}
+      <div className="saved__content">
+        {/* Not signed in */}
         {!user && (
-          <div className="auth-card">
+          <div className="saved__auth-card">
+            <div className="saved__auth-icon">🔐</div>
             <h3>Sign in to view your saved events</h3>
-            <p>We will send a magic link to your email.</p>
-            <form onSubmit={handleSignIn} className="auth-form">
+            <p>We'll send a magic link — no password needed.</p>
+            <form onSubmit={handleSignIn} className="saved__auth-form">
               <input
                 type="email"
                 value={authEmail}
                 onChange={(e) => setAuthEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="auth-input"
+                className="saved__auth-input"
               />
               <button type="submit" className="btn btn-primary">
                 Send Sign-in Link
               </button>
             </form>
-            {authStatus && <span className="auth-status">{authStatus}</span>}
+            {authStatus && <span className="saved__auth-status">{authStatus}</span>}
           </div>
         )}
 
+        {/* Error */}
         {user && error && (
-          <div className="saved-error">{error}</div>
+          <div className="saved__error">{error}</div>
         )}
 
+        {/* Loading */}
         {user && loading && (
-          <div className="saved-loading">Loading saved events...</div>
-        )}
-
-        {user && !loading && savedEvents.length === 0 && (
-          <div className="saved-empty">
-            <div className="saved-empty-icon">⭐</div>
-            <h3>No saved events yet</h3>
-            <p>Save events from the home page to see them here.</p>
-            <Link to="/" className="btn btn-primary">Browse events</Link>
+          <div className="saved__loading">
+            <div className="saved__loading-spinner" />
+            <p>Loading saved events…</p>
           </div>
         )}
 
+        {/* Empty */}
+        {user && !loading && savedEvents.length === 0 && (
+          <div className="saved__empty">
+            <div className="saved__empty-icon">⭐</div>
+            <h3>No saved events yet</h3>
+            <p>Save events from the explore page to see them here.</p>
+            <Link to="/home" className="btn btn-primary">
+              Browse events
+            </Link>
+          </div>
+        )}
+
+        {/* Grid */}
         {user && !loading && savedEvents.length > 0 && (
-          <div className="saved-grid">
+          <div className="saved__grid">
             {savedEvents.map((item) => (
               <EventCard
                 key={item.event_key}

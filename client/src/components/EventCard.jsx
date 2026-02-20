@@ -26,7 +26,7 @@ const EventCard = ({ event, eventKey = '', isSaved = false, onToggleSave, saving
       case 'workshop':
         return 'green';
       default:
-        return 'indigo';
+        return 'cyan';
     }
   };
 
@@ -62,7 +62,7 @@ const EventCard = ({ event, eventKey = '', isSaved = false, onToggleSave, saving
     const url = event.redirectURL || window.location.href;
     const title = event.title || 'Event';
     const text = event.description
-      ? `${event.description.substring(0, 120)}...`
+      ? `${event.description.substring(0, 120)}…`
       : 'Check out this event.';
 
     try {
@@ -73,7 +73,7 @@ const EventCard = ({ event, eventKey = '', isSaved = false, onToggleSave, saving
 
       if (navigator.clipboard && url) {
         await navigator.clipboard.writeText(url);
-        setShareStatus('Copied');
+        setShareStatus('Copied!');
         setTimeout(() => setShareStatus(''), 2000);
         return;
       }
@@ -85,116 +85,142 @@ const EventCard = ({ event, eventKey = '', isSaved = false, onToggleSave, saving
     setTimeout(() => setShareStatus(''), 2000);
   };
 
+  const handleViewEvent = () => {
+    if (event.redirectURL) {
+      window.open(event.redirectURL, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <div className="event-card">
-      <div className="event-card-header">
-        <div className="event-badge">
-          <span className="badge-text">{event.hostedBy || event.hosted_by}</span>
+    <div className="ecard">
+      {/* Gradient top bar */}
+      <div className="ecard__bar" />
+
+      {/* Header */}
+      <div className="ecard__header">
+        <div className="ecard__platform">
+          <span className="ecard__platform-dot" />
+          <span>{event.hostedBy || event.hosted_by || 'Unknown'}</span>
         </div>
-        <div className="event-card-actions">
+        <div className="ecard__header-actions">
+          {event.verified && (
+            <span className="ecard__verified" title="Verified event">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </span>
+          )}
           <button
             type="button"
-            className={`save-button ${isSaved ? 'saved' : ''}`}
+            className={`ecard__action-btn ecard__save ${isSaved ? 'ecard__save--active' : ''}`}
             onClick={() => onToggleSave?.(event)}
             disabled={!onToggleSave || isSaving}
             aria-pressed={isSaved}
             aria-label={isSaved ? 'Remove from saved' : 'Save event'}
+            title={isSaved ? 'Saved' : 'Save'}
           >
-            <svg className="save-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z" />
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
             </svg>
-            <span>{isSaved ? 'Saved' : 'Save'}</span>
           </button>
           <button
             type="button"
-            className="share-button"
+            className="ecard__action-btn ecard__share"
             onClick={handleShare}
             aria-label="Share event"
+            title={shareStatus || 'Share'}
           >
-            <svg className="share-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M12 3v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-            <span>{shareStatus || 'Share'}</span>
-          </button>
-          {event.verified && (
-            <div className="verified-badge">
-              <svg className="verified-icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            {shareStatus === 'Copied!' ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
               </svg>
-              <span>Verified</span>
-            </div>
-          )}
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
-      <div className="event-card-content">
+      {/* Content */}
+      <div className="ecard__body">
         {countdownLabel && (
-          <div className={`countdown-badge countdown-${countdownVariant}`}>
+          <span className={`ecard__countdown ecard__countdown--${countdownVariant}`}>
             {countdownLabel}
-          </div>
+          </span>
         )}
-        <h3 className="event-title">{event.title}</h3>
-        <p className="event-description">
+
+        <h3 className="ecard__title">{event.title}</h3>
+
+        <p className="ecard__desc">
           {event.description?.substring(0, 150)}
-          {event.description?.length > 60 ? '...' : ''}
+          {event.description?.length > 60 ? '…' : ''}
         </p>
 
-        <div className="event-tags">
+        {/* Tags */}
+        <div className="ecard__tags">
           {event.type && (
-            <span className={`event-tag event-tag-${getEventTypeColor(event.type)}`}>
+            <span className={`ecard__tag ecard__tag--${getEventTypeColor(event.type)}`}>
               {event.type}
             </span>
           )}
           {event.tags?.slice(0, 3).map((tag, index) => (
-            <span key={index} className="event-tag event-tag-secondary">
+            <span key={index} className="ecard__tag ecard__tag--default">
               {tag}
             </span>
           ))}
         </div>
 
-        <div className="event-dates">
-          <div className="date-item">
-            <div className="date-icon">📅</div>
-            <div className="date-content">
-              <span className="date-label">Start Date</span>
-              <span className="date-value">{formatDate(event.startDate)}</span>
+        {/* Dates */}
+        <div className="ecard__dates">
+          <div className="ecard__date">
+            <span className="ecard__date-emoji">📅</span>
+            <div>
+              <span className="ecard__date-label">Start</span>
+              <span className="ecard__date-value">{formatDate(event.startDate)}</span>
             </div>
           </div>
-          
           {event.endDate && (
-            <div className="date-item">
-              <div className="date-icon">🏁</div>
-              <div className="date-content">
-                <span className="date-label">End Date</span>
-                <span className="date-value">{formatDate(event.endDate)}</span>
+            <div className="ecard__date">
+              <span className="ecard__date-emoji">🏁</span>
+              <div>
+                <span className="ecard__date-label">End</span>
+                <span className="ecard__date-value">{formatDate(event.endDate)}</span>
               </div>
             </div>
           )}
-          
           {event.deadline && (
-            <div className="date-item deadline">
-              <div className="date-icon">⏰</div>
-              <div className="date-content">
-                <span className="date-label">Deadline</span>
-                <span className="date-value">{formatDate(event.deadline)}</span>
+            <div className="ecard__date ecard__date--deadline">
+              <span className="ecard__date-emoji">⏰</span>
+              <div>
+                <span className="ecard__date-label">Deadline</span>
+                <span className="ecard__date-value">{formatDate(event.deadline)}</span>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="event-card-footer">
-        <a 
-          href={event.redirectURL} 
-          target="_blank" 
-          rel="noreferrer" 
-          className="event-link"
+      {/* Footer */}
+      <div className="ecard__footer">
+        <button
+          type="button"
+          className="ecard__cta"
+          onClick={handleViewEvent}
+          disabled={!event.redirectURL}
         >
           <span>View Event</span>
-          <svg className="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
           </svg>
-        </a>
+        </button>
       </div>
     </div>
   );

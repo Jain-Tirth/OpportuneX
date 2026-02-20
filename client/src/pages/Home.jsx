@@ -34,7 +34,7 @@ const Home = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [eventsPerPage] = useState(12); // You can make this changeable
+  const [eventsPerPage] = useState(12);
   const [serverMeta, setServerMeta] = useState({ page: 1, limit: 12, total: 0, totalPages: 1 });
 
   useEffect(() => {
@@ -162,13 +162,11 @@ const Home = () => {
   const totalPages = serverMeta.totalPages;
   const showPagination = totalPages > 1;
 
-  // Change page
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
@@ -215,7 +213,7 @@ const Home = () => {
 
     const { error: signInError } = await supabase.auth.signInWithOtp({
       email: authEmail.trim(),
-      options: { emailRedirectTo: window.location.origin }
+      options: { emailRedirectTo: window.location.origin + '/home' }
     });
 
     if (signInError) {
@@ -224,10 +222,6 @@ const Home = () => {
     }
 
     setAuthStatus('Check your email for the sign-in link.');
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
   };
 
   const handleToggleSave = async (event) => {
@@ -277,191 +271,204 @@ const Home = () => {
     }
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedPlatform('all');
+    setSortBy('newest');
+    setFilterFree(false);
+    setFilterOnline(false);
+    setFilterBeginner(false);
+    setFilterPrize(false);
+    setLocationQuery('');
+  };
+
+  const activeFilterCount = [filterFree, filterOnline, filterBeginner, filterPrize].filter(Boolean).length
+    + (selectedPlatform !== 'all' ? 1 : 0)
+    + (locationQuery ? 1 : 0)
+    + (debouncedSearch ? 1 : 0);
+
   return (
     <div className="home">
       {/* Hero Section */}
-      <div className="hero">
-        <div className="hero-content">
-          <div className="hero-badge">
-            <span className="badge-text">Discover Amazing Opportunities</span>
+      <div className="home__hero">
+        <div className="home__hero-bg">
+          <div className="home__hero-orb home__hero-orb--1" />
+          <div className="home__hero-orb home__hero-orb--2" />
+        </div>
+        <div className="home__hero-content">
+          <div className="home__hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <span>Discover Amazing Opportunities</span>
           </div>
-          <h1 className="hero-title">
-            Explore <span className="gradient-text">Hackathons</span> & Events
+          <h1 className="home__hero-title">
+            Explore <span className="home__gradient-text">Hackathons</span> & Events
           </h1>
-          <p className="hero-description">
+          <p className="home__hero-desc">
             Discover cutting-edge hackathons, coding competitions, and tech events from top platforms.
-            Join the innovation community and build the future.
           </p>
-
-          {/* Action Buttons */}
-          <div className="hero-actions">
-            <Link className="btn btn-secondary" to="/saved">
-              Saved Events
-            </Link>
-            {user && (
-              <button className="btn btn-secondary" onClick={handleSignOut}>
-                Sign out
-              </button>
-            )}
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
-        <div className="container">
+      <div className="home__main">
+        <div className="home__container">
 
-          {/* Section Header */}
-          <div className="section-header">
-            <h2 className="section-title">Latest Events</h2>
+          {/* Section Header with count */}
+          <div className="home__section-header">
+            <div className="home__section-left">
+              <h2 className="home__section-title">Latest Events</h2>
+              {serverMeta.total > 0 && (
+                <span className="home__section-count">{serverMeta.total} events</span>
+              )}
+            </div>
+            {activeFilterCount > 0 && (
+              <button className="home__clear-all" onClick={clearAllFilters}>
+                Clear all ({activeFilterCount})
+              </button>
+            )}
           </div>
 
           {/* Search and Filter Controls */}
-          {!loading && !error && events.length > 0 && (
-            <div className="search-filter-section">
+          {!loading && !error && (
+            <div className="home__filters">
               {/* Search Bar */}
-              <div className="search-bar">
-                <div className="search-input-container">
-                  <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="home__search">
+                <div className="home__search-inner">
+                  <svg className="home__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
                   </svg>
                   <input
                     type="text"
-                    placeholder="Search events, tags, or descriptions..."
+                    placeholder="Search events, tags, or descriptions…"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
+                    className="home__search-input"
+                    id="event-search-input"
                   />
                   {searchTerm && (
                     <button
-                      className="search-clear"
+                      className="home__search-clear"
                       onClick={() => setSearchTerm('')}
+                      aria-label="Clear search"
                     >
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18M6 6l12 12" />
                       </svg>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Filter Controls */}
-              <div className="filter-controls">
-                {/* Platform Filter */}
-                <div className="filter-group">
-                  <label className="filter-label">Platform</label>
+              {/* Dropdowns */}
+              <div className="home__filter-row">
+                <div className="home__filter-group">
+                  <label className="home__filter-label">Platform</label>
                   <select
                     value={selectedPlatform}
                     onChange={(e) => setSelectedPlatform(e.target.value)}
-                    className="platform-select"
+                    className="home__select"
+                    id="platform-filter"
                   >
-                    <option value="all">All Platforms </option>
-                    <option value="devfolio">Devfolio </option>
-                    <option value="unstop">Unstop </option>
+                    <option value="all">All Platforms</option>
+                    <option value="devfolio">Devfolio</option>
+                    <option value="unstop">Unstop</option>
                     <option value="devpost">Devpost</option>
                   </select>
                 </div>
 
-                {/* Sort Filter */}
-                <div className="filter-group">
-                  <label className="filter-label">Sort by</label>
+                <div className="home__filter-group">
+                  <label className="home__filter-label">Sort by</label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="sort-select"
+                    className="home__select"
+                    id="sort-filter"
                   >
                     <option value="newest">Ending Soon First</option>
                     <option value="endingSoon">Deadline Priority</option>
                     <option value="oldest">Oldest First</option>
                     <option value="deadline">By Deadline</option>
-                    <option value="alphabetical">A-Z</option>
+                    <option value="alphabetical">A–Z</option>
                   </select>
                 </div>
               </div>
 
-              <div className="filter-chips">
-                <label className={`chip ${filterFree ? 'active' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={filterFree}
-                    onChange={(e) => setFilterFree(e.target.checked)}
-                  />
-                  Free
+              {/* Chips */}
+              <div className="home__chips">
+                <label className={`home__chip ${filterFree ? 'home__chip--active' : ''}`}>
+                  <input type="checkbox" checked={filterFree} onChange={(e) => setFilterFree(e.target.checked)} />
+                  💸 Free
                 </label>
-                <label className={`chip ${filterOnline ? 'active' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={filterOnline}
-                    onChange={(e) => setFilterOnline(e.target.checked)}
-                  />
-                  Online
+                <label className={`home__chip ${filterOnline ? 'home__chip--active' : ''}`}>
+                  <input type="checkbox" checked={filterOnline} onChange={(e) => setFilterOnline(e.target.checked)} />
+                  🌐 Online
                 </label>
-                <label className={`chip ${filterBeginner ? 'active' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={filterBeginner}
-                    onChange={(e) => setFilterBeginner(e.target.checked)}
-                  />
-                  Beginner
+                <label className={`home__chip ${filterBeginner ? 'home__chip--active' : ''}`}>
+                  <input type="checkbox" checked={filterBeginner} onChange={(e) => setFilterBeginner(e.target.checked)} />
+                  🌱 Beginner
                 </label>
-                <label className={`chip ${filterPrize ? 'active' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={filterPrize}
-                    onChange={(e) => setFilterPrize(e.target.checked)}
-                  />
-                  Prize
+                <label className={`home__chip ${filterPrize ? 'home__chip--active' : ''}`}>
+                  <input type="checkbox" checked={filterPrize} onChange={(e) => setFilterPrize(e.target.checked)} />
+                  🏆 Prize
                 </label>
-                <div className="location-filter">
+                <div className="home__location">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
                   <input
                     type="text"
                     value={locationQuery}
                     onChange={(e) => setLocationQuery(e.target.value)}
                     placeholder="Location or region"
+                    id="location-filter"
                   />
                 </div>
               </div>
             </div>
           )}
 
+          {/* Auth prompt */}
           {showAuthPrompt && !user && (
-            <div className="auth-banner">
-              <div className="auth-banner-content">
-                <div>
-                  <h4>Sign in to save events</h4>
-                  <p>We will send a magic link to your email.</p>
-                </div>
-                <form onSubmit={handleSignIn} className="auth-banner-form">
-                  <input
-                    type="email"
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    placeholder="you@example.com"
-                  />
-                  <button type="submit" className="btn btn-primary">
-                    Send Link
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowAuthPrompt(false)}
-                  >
-                    Later
-                  </button>
-                </form>
-                {authStatus && <span className="auth-status">{authStatus}</span>}
+            <div className="home__auth-banner">
+              <div className="home__auth-info">
+                <h4>Sign in to save events</h4>
+                <p>We'll send a magic link to your email.</p>
               </div>
+              <form onSubmit={handleSignIn} className="home__auth-form">
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+                <button type="submit" className="btn btn-primary btn-sm">
+                  Send Link
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setShowAuthPrompt(false)}
+                >
+                  Later
+                </button>
+              </form>
+              {authStatus && <span className="home__auth-status">{authStatus}</span>}
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="error-card">
-              <div className="error-icon">⚠️</div>
-              <div className="error-content">
+            <div className="home__error">
+              <div className="home__error-icon">⚠️</div>
+              <div className="home__error-body">
                 <h3>Oops! Something went wrong</h3>
                 <p>{error}</p>
-                <button className="btn btn-sm" onClick={() => fetchEvents({ page: currentPage })}>
+                <button className="btn btn-primary btn-sm" onClick={() => fetchEvents({ page: currentPage })}>
                   Try Again
                 </button>
               </div>
@@ -470,16 +477,16 @@ const Home = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="loading-section">
-              <div className="loading-spinner"></div>
-              <p className="loading-text">Loading amazing events...</p>
+            <div className="home__loading">
+              <div className="home__loading-spinner" />
+              <p>Loading amazing events…</p>
             </div>
           )}
 
           {/* Events Grid */}
           {!loading && !error && (
             <>
-              <div className="events-grid">
+              <div className="home__grid">
                 {currentEvents.length > 0 ? (
                   currentEvents.map((event, index) => {
                     const eventKey = getEventKey(event);
@@ -494,57 +501,47 @@ const Home = () => {
                       />
                     );
                   })
-                ) : events.length > 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-icon">🔍</div>
-                    <h3>No events found</h3>
-                    <p>No events match your current search and filter criteria.</p>
-                    <div className="empty-actions">
-                      <button className="btn btn-secondary" onClick={() => {
-                        setSearchTerm('');
-                        setSelectedPlatform('all');
-                        setSortBy('newest');
-                        setFilterFree(false);
-                        setFilterOnline(false);
-                        setFilterBeginner(false);
-                        setFilterPrize(false);
-                        setLocationQuery('');
-                      }}>
-                        Clear Filters
-                      </button>
-                    </div>
-                  </div>
                 ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">🎯</div>
+                  <div className="home__empty">
+                    <div className="home__empty-icon">
+                      {debouncedSearch || activeFilterCount > 0 ? '🔍' : '🎯'}
+                    </div>
                     <h3>No events found</h3>
+                    {(debouncedSearch || activeFilterCount > 0) && (
+                      <>
+                        <p>No events match your current filters.</p>
+                        <button className="btn btn-secondary" onClick={clearAllFilters}>
+                          Clear Filters
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Pagination */}
               {showPagination && (
-                <div className="pagination">
+                <div className="home__pagination">
                   <button
-                    className="pagination-btn"
+                    className="home__page-btn"
                     onClick={() => paginate(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m15 18-6-6 6-6" />
                     </svg>
-                    Previous
+                    Prev
                   </button>
 
-                  <div className="pagination-numbers">
+                  <div className="home__page-numbers">
                     {getPageNumbers().map((number, index) => (
                       number === '...' ? (
-                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                        <span key={`ellipsis-${index}`} className="home__page-ellipsis">…</span>
                       ) : (
                         <button
                           key={number}
                           onClick={() => paginate(number)}
-                          className={`pagination-number ${currentPage === number ? 'active' : ''}`}
+                          className={`home__page-num ${currentPage === number ? 'home__page-num--active' : ''}`}
                         >
                           {number}
                         </button>
@@ -553,13 +550,13 @@ const Home = () => {
                   </div>
 
                   <button
-                    className="pagination-btn"
+                    className="home__page-btn"
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === totalPages}
                   >
                     Next
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9 18 6-6-6-6" />
                     </svg>
                   </button>
                 </div>
