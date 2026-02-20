@@ -46,16 +46,7 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="landing__nav">
         <div className="landing__nav-brand">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <defs>
-              <linearGradient id="landingLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#06b6d4" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            <rect width="32" height="32" rx="8" fill="url(#landingLogoGrad)" />
-            <path d="M10 22V12l6-4 6 4v10l-6 4-6-4z" fill="rgba(255,255,255,0.95)" />
-          </svg>
+          <img src="/favicon.png" alt="UniStop logo" className="landing__nav-logo" />
           <span>UniStop</span>
         </div>
         <div className="landing__nav-actions">

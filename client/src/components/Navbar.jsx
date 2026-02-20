@@ -29,11 +29,25 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close mobile menu on route change
     useEffect(() => {
         setMobileOpen(false);
     }, [location.pathname]);
 
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileOpen]);
+
     const handleSignOut = async () => {
+        setMobileOpen(false);
         await supabase.auth.signOut();
     };
 
@@ -42,21 +56,13 @@ const Navbar = () => {
     return (
         <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
             <div className="navbar__inner">
-                {/* Brand */}
+                {/* Brand — uses favicon.png */}
                 <Link to="/" className="navbar__brand">
-                    <div className="navbar__logo">
-                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                            <defs>
-                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#06b6d4" />
-                                    <stop offset="100%" stopColor="#8b5cf6" />
-                                </linearGradient>
-                            </defs>
-                            <rect width="32" height="32" rx="8" fill="url(#logoGrad)" />
-                            <path d="M10 22V12l6-4 6 4v10l-6 4-6-4z" fill="rgba(255,255,255,0.95)" />
-                            <path d="M16 8l6 4v10" stroke="rgba(0,0,0,0.1)" strokeWidth="1" fill="none" />
-                        </svg>
-                    </div>
+                    <img
+                        src="/favicon.png"
+                        alt="UniStop logo"
+                        className="navbar__logo-img"
+                    />
                     <span className="navbar__brand-text">UniStop</span>
                 </Link>
 
@@ -115,26 +121,55 @@ const Navbar = () => {
                 </button>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Overlay */}
+            {mobileOpen && (
+                <div
+                    className="navbar__mobile-backdrop"
+                    onClick={() => setMobileOpen(false)}
+                />
+            )}
             <div className={`navbar__mobile ${mobileOpen ? 'navbar__mobile--open' : ''}`}>
                 <Link
                     to="/home"
                     className={`navbar__mobile-link ${isActive('/home') ? 'navbar__mobile-link--active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
                 >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
                     Explore Events
                 </Link>
                 <Link
                     to="/saved"
                     className={`navbar__mobile-link ${isActive('/saved') ? 'navbar__mobile-link--active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
                 >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+                    </svg>
                     Saved Events
                 </Link>
+
+                <div className="navbar__mobile-divider" />
+
                 {user ? (
                     <button className="navbar__mobile-link navbar__mobile-signout" onClick={handleSignOut}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
                         Sign out
                     </button>
                 ) : (
-                    <Link to="/" className="navbar__mobile-link navbar__mobile-cta">
+                    <Link
+                        to="/"
+                        className="navbar__mobile-link navbar__mobile-cta"
+                        onClick={() => setMobileOpen(false)}
+                    >
                         Sign in
                     </Link>
                 )}

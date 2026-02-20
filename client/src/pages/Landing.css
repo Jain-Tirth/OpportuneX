@@ -79,6 +79,13 @@
   gap: 10px;
 }
 
+.landing__nav-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
 .landing__nav-brand span {
   font-weight: 800;
   font-size: 1.25rem;
