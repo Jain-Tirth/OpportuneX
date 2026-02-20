@@ -20,5 +20,6 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!../README.md' ':!../.gitignore' ':!../render.yaml' ':!../*.md'"
 }
