@@ -104,7 +104,7 @@ const Navbar = () => {
                         </div>
                     ) : (
                         <Link to="/" className="navbar__cta">
-                            Sign in
+                            Send Magic Link
                         </Link>
                     )}
                 </div>
@@ -170,7 +170,7 @@ const Navbar = () => {
                         className="navbar__mobile-link navbar__mobile-cta"
                         onClick={() => setMobileOpen(false)}
                     >
-                        Sign in
+                        Send Magic Link
                     </Link>
                 )}
             </div>
