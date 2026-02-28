@@ -8,7 +8,7 @@ const Landing = () => {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleMagicLink = async (event, intentLabel) => {
+  const handleMagicLink = async (event) => {
     event.preventDefault();
     setStatus('');
 
@@ -29,7 +29,7 @@ const Landing = () => {
       return;
     }
 
-    setStatus(`${intentLabel} link sent! Check your inbox.`);
+    setStatus('Magic link sent! Check your inbox.');
     setLoading(false);
   };
 
@@ -90,7 +90,7 @@ const Landing = () => {
         <div className="landing__auth-card">
           <div className="landing__auth-glow" />
           <h2>Get started</h2>
-          <p>Use a magic link to sign in or create your account — no password needed.</p>
+          <p>Use a magic link to access your account — no password needed.</p>
           <form className="landing__form" onSubmit={(e) => e.preventDefault()}>
             <label htmlFor="email" className="landing__form-label">
               Email address
@@ -113,18 +113,10 @@ const Landing = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={(e) => handleMagicLink(e, 'Login')}
+                onClick={handleMagicLink}
                 disabled={loading}
               >
-                {loading ? 'Sending…' : 'Login'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={(e) => handleMagicLink(e, 'Sign up')}
-                disabled={loading}
-              >
-                {loading ? 'Sending…' : 'Sign up'}
+                {loading ? 'Sending…' : 'Send Magic Link'}
               </button>
             </div>
             {status && (
