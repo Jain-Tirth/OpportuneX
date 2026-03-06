@@ -135,31 +135,6 @@ UniStop/
 └─
 ```
 
-## API Endpoints
-
-### Events
-- `GET /api/events` - Fetch all events
-- `POST /api/events` - Create new event
-- `GET /api/events/scrape` - Trigger manual scraping
-- `GET /api/events/sample` - Get sample events
-
-### Scheduler
-- `GET /api/scheduler/status` - Get scheduler status
-- `POST /api/scheduler/start` - Start automated scheduling
-- `POST /api/scheduler/stop` - Stop automated scheduling  
-- `POST /api/scheduler/trigger` - Manual scraping trigger
-
-## Automated Scraping
-
-The system runs automated scraping every 2 hours using node-cron:
-
-### Scraping Features
-- **Smart Filtering**: Only tech/hackathon related events
-- **Date Validation**: Filters out expired events
-- **Duplicate Prevention**: Title and host-based deduplication
-- **Tag Extraction**: Automatic categorization with relevant tags
-- **Error Recovery**: Continues scraping even if one platform fails
-
 ### Scraped Data Points
 - Event title and description
 - Start/end dates and deadlines
@@ -181,56 +156,6 @@ The system runs automated scraping every 2 hours using node-cron:
 - Safari compatibility optimizations
 - Dark theme elements
 
-## Deployment
-
-### Frontend (Vercel)
-The frontend can be deployed on Vercel:
-
-```bash
-cd client
-npm run build
-# Deploy to Vercel
-```
-
-### Environment Variables
-Set these in your deployment platform:
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
-- `NODE_ENV=production`
-
-## Development
-
-### Adding New Scrapers
-1. Create new scraper file in `server/scrappers/`
-2. Implement required methods:
-   ```javascript
-   class NewScraper {
-     async scrapeEvents() {
-       // Return array of event objects
-     }
-   }
-   ```
-3. Add to `mainScrapping.js`
-4. Update scheduler if needed
-
-### Data Schema
-Events must follow this structure:
-```javascript
-{
-  title: String,
-  description: String,
-  type: String,
-  startDate: String (YYYY-MM-DD),
-  endDate: String (YYYY-MM-DD),
-  deadline: String (YYYY-MM-DD),
-  tags: Array of Strings,
-  hostedBy: String,
-  verified: Boolean,
-  redirectURL: String
-}
-```
-
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -240,6 +165,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Jain-Tirth**
 - GitHub: [@Jain-Tirth](https://github.com/Jain-Tirth)
 - Project: [UniStop](https://github.com/Jain-Tirth/UniStop)
-
 
 **Star this repository if you find it helpful!**
