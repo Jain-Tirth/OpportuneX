@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import axios from 'axios';
+import { scrapeWithTinyFish } from './tinyFishHelper.js';
 
 export class eventbriteScrapper {
     constructor() {
@@ -13,6 +14,12 @@ export class eventbriteScrapper {
 
     /* Scrape Eventbrite using Cheerio */
     async scrapeEventbrite() {
+        // Try TinyFish first
+        const tfEvents = await scrapeWithTinyFish(this.platform.eventbrite.hackathonsUrl, 'Eventbrite');
+        if (tfEvents) {
+            return tfEvents;
+        }
+
         try {
             console.log('Scraping Eventbrite...');
             const response = await axios.get(this.platform.eventbrite.hackathonsUrl, {

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { scrapeWithTinyFish } from './tinyFishHelper.js';
 
 dotenv.config();
 
@@ -9,6 +10,12 @@ export class devPostScrapper {
     }
 
     async scrapeDevpost() {
+        // Try TinyFish first
+        const tfEvents = await scrapeWithTinyFish('https://devpost.com/hackathons', 'Devpost');
+        if (tfEvents) {
+            return tfEvents;
+        }
+
         try {
             let page = 1;
             let events = [];
