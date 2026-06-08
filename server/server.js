@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import './scheduler.js';
 import eventRoutes from './routes/eventRoute.js';
 import schedulerRoutes from './routes/schedulerRoute.js';
+import chatRoutes from './routes/chatRoute.js';
+
 
 dotenv.config();
 
@@ -29,6 +31,9 @@ app.use('/api/events', eventRoutes);
 
 // Scheduler routes
 app.use('/api/scheduler', schedulerRoutes);
+
+// Chatbot route
+app.use('/api/chat', chatRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

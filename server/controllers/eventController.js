@@ -1,5 +1,6 @@
 import supabase from '../supabase/client.js';
 import mainScrapping from '../scrappers/mainScrapping.js';
+import { generateEmbedding, buildEventTextBlob } from '../services/embeddingService.js';
 
 export const scrapeEvents = async (events) => {
     try {
@@ -26,9 +27,23 @@ export const scrapeEvents = async (events) => {
                     continue;
                 }
 
+                // Generate vector embedding locally
+                let embedding = null;
+                try {
+                    const textBlob = buildEventTextBlob(event);
+                    embedding = await generateEmbedding(textBlob);
+                } catch (embedErr) {
+                    console.error('Failed to generate embedding for event:', event.title, embedErr.message);
+                }
+
+                const eventToSave = {
+                    ...event,
+                    embedding
+                };
+
                 const { data, error } = await supabase
                     .from('Event')
-                    .insert([event])
+                    .insert([eventToSave])
                     .select();
                     
                 if (error) {
