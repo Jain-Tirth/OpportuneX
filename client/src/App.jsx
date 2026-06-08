@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Saved from './pages/Saved';
 import Navbar from './components/Navbar';
+import ChatWidget from './components/ChatWidget';
 import { supabase } from './lib/supaBaseClient';
 import './App.css';
 
@@ -15,7 +16,7 @@ const ProtectedRoute = ({ isAuthenticated, children }) => {
   return children;
 };
 
-/* Show Navbar on all pages except Landing */
+/* Show Navbar and ChatWidget on all pages except Landing */
 const AppLayout = ({ isAuthenticated }) => {
   const location = useLocation();
   const showNavbar = location.pathname !== '/';
@@ -44,6 +45,7 @@ const AppLayout = ({ isAuthenticated }) => {
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {isAuthenticated && <ChatWidget />}
     </>
   );
 };
