@@ -85,7 +85,7 @@ If no hackathons match or are relevant, state that clearly and offer general ass
     res.json({
       success: true,
       reply,
-      sources: (matchedEvents || []).map(e => ({ id: e.id, title: e.title, url: e.redirectURL }))
+      sources: matchedEvents || []
     });
 
   } catch (error) {
