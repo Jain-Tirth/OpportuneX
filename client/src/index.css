@@ -21,10 +21,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #0a0c14;
+  background: var(--bg-primary);
   min-height: 100vh;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
 }
 
 code {

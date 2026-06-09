@@ -78,7 +78,29 @@ const Navbar = () => {
                             <rect x="14" y="14" width="7" height="7" />
                             <rect x="3" y="14" width="7" height="7" />
                         </svg>
-                        Explore
+                        Hub
+                    </Link>
+                    <Link
+                        to="/filter"
+                        className={`navbar__link ${isActive('/filter') ? 'navbar__link--active' : ''}`}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                        </svg>
+                        Filter
+                    </Link>
+                    <Link
+                        to="/ai-navigator"
+                        className={`navbar__link ${isActive('/ai-navigator') ? 'navbar__link--active' : ''}`}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="11" width="18" height="10" rx="2" />
+                            <circle cx="12" cy="5" r="2" />
+                            <path d="M12 7v4" />
+                            <line x1="8" y1="16" x2="8" y2="16" />
+                            <line x1="16" y1="16" x2="16" y2="16" />
+                        </svg>
+                        AI Navigator
                     </Link>
                     <Link
                         to="/saved"
@@ -140,7 +162,31 @@ const Navbar = () => {
                         <rect x="14" y="14" width="7" height="7" />
                         <rect x="3" y="14" width="7" height="7" />
                     </svg>
-                    Explore Events
+                    Hub
+                </Link>
+                <Link
+                    to="/filter"
+                    className={`navbar__mobile-link ${isActive('/filter') ? 'navbar__mobile-link--active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    Filter Lab
+                </Link>
+                <Link
+                    to="/ai-navigator"
+                    className={`navbar__mobile-link ${isActive('/ai-navigator') ? 'navbar__mobile-link--active' : ''}`}
+                    onClick={() => setMobileOpen(false)}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="10" rx="2" />
+                        <circle cx="12" cy="5" r="2" />
+                        <path d="M12 7v4" />
+                        <line x1="8" y1="16" x2="8" y2="16" />
+                        <line x1="16" y1="16" x2="16" y2="16" />
+                    </svg>
+                    AI Navigator
                 </Link>
                 <Link
                     to="/saved"
